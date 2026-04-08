@@ -57,9 +57,9 @@ export const SECURE_HSA_PRICING: SecureHsaPricing[] = [
   { productId: '3290', price: 454.0, iuaLevel: '2500', ageRange: '30-64', coverageType: 'Member + Children' },
   { productId: '3291', price: 363.0, iuaLevel: '5000', ageRange: '18-29', coverageType: 'Member + Children' },
   { productId: '3291', price: 427.0, iuaLevel: '5000', ageRange: '30-64', coverageType: 'Member + Children' },
-  // Member + Family (3292 / $500 / 30–64 obscured in source; 988 + 184 aligned to $500 tier step-up)
+  // Member + Family
   { productId: '3292', price: 988.0, iuaLevel: '500', ageRange: '18-29', coverageType: 'Member + Family' },
-  { productId: '3292', price: 1172.0, iuaLevel: '500', ageRange: '30-64', coverageType: 'Member + Family' },
+  { productId: '3292', price: 1225.0, iuaLevel: '500', ageRange: '30-64', coverageType: 'Member + Family' },
   { productId: '3293', price: 794.0, iuaLevel: '1000', ageRange: '18-29', coverageType: 'Member + Family' },
   { productId: '3293', price: 877.0, iuaLevel: '1000', ageRange: '30-64', coverageType: 'Member + Family' },
   { productId: '3294', price: 711.0, iuaLevel: '1500', ageRange: '18-29', coverageType: 'Member + Family' },
