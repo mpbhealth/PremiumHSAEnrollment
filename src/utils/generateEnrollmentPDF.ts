@@ -277,22 +277,52 @@ export async function generateEnrollmentPDF(formData: FormData): Promise<Blob> {
   };
 
   const hasSpouse = formData.dependents.some(dep => dep.relationship === 'Spouse');
+  const q = formData.questionnaireAnswers;
 
   const questionnaireData = [
-    ['Business Information\n\nTax ID/EIN: EIN (Employer Identification Number) or Social Security Number (for 1099 individuals). This plan is exclusively for business entities, sole proprietors, business owners, and 1099 individuals.', formatTaxIdForPdf(formData.questionnaireAnswers.businessTaxId || '')],
-    ['Understanding Zion HealthShare Principles of Membership\n\nAdherence to the Zion HealthShare Principles of Membership minimizes medical risks, encourages good health practices, and ensures member integrity and accountability. Our members must comply with certain requirements to maintain membership and remain eligible to participate in our medical cost sharing community. Zion HealthShare members are expected to act with honor and integrity. Members should not falsify a sharing request, medical records, or use other deceptive practices. If a member abuses the trust of our community, their membership may be revoked or withdrawn.', formatAnswer(formData.questionnaireAnswers.zionPrinciplesAccept)],
-    ['I believe that a community of ethical, health-conscious people can most effectively care for one another by directly sharing the costs associated with each other\'s healthcare needs. I acknowledge that Zion HealthShare affiliates itself with, and considers itself accountable to, a higher power. I recognize that Zion HealthShare welcomes members of all faiths.', formatAnswer(formData.questionnaireAnswers.zionm1a)],
-    ['I understand that Zion HealthShare is a benevolent organization, not an insurance entity, and that Zion HealthShare cannot guarantee payment of medical expenses.', formatAnswer(formData.questionnaireAnswers.zionm1b)],
-    ['I will practice good health measures and strive for a balanced lifestyle. I agree to abstain from the use of any illicit or illegal drugs and refrain from excessive alcohol consumption, acts which are harmful to the body. I understand that members who use tobacco will have an increased monthly contribution (per household membership) of $50.', formatAnswer(formData.questionnaireAnswers.zionm1d)],
-    ['I am obligated to care for my family. I believe that mental, physical, emotional, or other abuse of a family member, or any other person, is morally wrong. I am committed to always treating my family and others with care and respect.', formatAnswer(formData.questionnaireAnswers.zionm1h)],
-    ['I agree to submit to mediation followed by subsequent binding arbitration, if needed, for any instance of a dispute with Zion HealthShare or its affiliates. It is the members responsibility to ensure all medical bills submitted for sharing are submitted within 6 months of the date of service.', formatAnswer(formData.questionnaireAnswers.zionTimelySubmission)],
-    ['Understanding of Pre-Existing Conditions: I understand that Medical Needs that result from a condition that existed prior to membership are only shareable if the condition is fully cured and 24 months have passed without symptoms, treatment, or medication, even if the cause of the symptoms is unknown or misdiagnosed.', formatAnswer(formData.questionnaireAnswers.zionmh1)],
-    ['IMPORTANT! Limitations on Maternity and Delivery Needs*\n\nI understand Maternity sharing requests have a structured Initial Unshareable Amount (IUA) as follows:\n\n- Household Membership IUA: $1,000 (Standard Maternity IUA: $2,500)\n- Household Membership IUA: $2,500 (Standard Maternity IUA: $2,500)\n- Household Membership IUA: $5,000 (Standard Maternity IUA: $5,000)\n\nExpenses eligible for sharing may include prenatal care, postnatal care, and delivery. Any newborn expenses incurred after delivery are subject to a separate sharing request and IUA.\n\nMATERNITY - WAITING PERIOD\n\nMaternity sharing requests are ineligible for sharing during the first six (6) months of membership. To be eligible for sharing, the conception date must occur after six (6) months of continuous membership, as confirmed by medical records. Members who intentionally misrepresent their conception dates may be subject to membership revocation. Household memberships enrolled through a company or employer are also NOT subject to the six (6)-month waiting period.', formatAnswer(formData.questionnaireAnswers.zionmh2P)],
-    ['Understanding of Limitations on Pre-Existing Conditions *\n\nI understand that Pre-existing conditions have a waiting or phase in period. Zion Health attempts to negotiate all medical bills received and many membership types include the PHCS network for pre-negotiated medical expenses.\n\n1st Year of Membership – Waiting period of all pre-existing conditions.\n2nd Year of Membership – Up to $25,000 of sharing for pre-existing conditions.\n3rd Year of Membership – Up to $50,000 of sharing for pre-existing conditions.\n4th Year of Membership and Beyond – Up to $125,000 of sharing for pre-existing conditions.', formatAnswer(formData.questionnaireAnswers.zionmh2)],
-    ['Primary Member Medical Conditions *\n\nHas the primary member experienced symptoms of, been diagnosed with, or been treated for any condition within the past 24 months?\n\n*Note: A $25.00 annual fee is charged at the time of enrollment and each year thereafter. This fee covers your membership in the Mpowering Benefits Association, Inc.', formData.questionnaireAnswers.zionmh3 || 'N/A'],
-    ['Primary Medical Treatments\n\nIf you have answered Yes please provide the date the treatment occurred and what type of treatment you received and/or the specific genetic defect / hereditary disease - one item per line.\n\nEXAMPLE: January 2018 abdominal hernia surgery', formData.questionnaireAnswers.primaryMedicalTreatments || 'N/A'],
-    ...(hasSpouse ? [['Spouse\'s Medical Conditions *\n\nHas the primary member\'s spouse experienced symptoms of, been diagnosed with, or been treated for any condition within the past 24 months?\n\nAdd conditions below. For multiple conditions, please add one per line. (If there are no conditions present, enter NA)', formData.questionnaireAnswers.spouseMedicalConditions || 'N/A']] : []),
-    ['Medical Cost Sharing Authorization: I acknowledge and understand that Medical Cost Sharing is not insurance and that I am always personally responsible for the payment of my own medical bills.', formData.questionnaireAnswers.medicalCostSharingAuth ? 'YES' : 'NO'],
+    [
+      'Business Information\n\nTax ID/EIN: EIN (Employer Identification Number) or Social Security Number (for 1099 individuals). This plan is exclusively for business entities, sole proprietors, business owners, and 1099 individuals.',
+      formatTaxIdForPdf(q.businessTaxId || ''),
+    ],
+    [
+      'Membership Principles — I/We commit to Sedera Member Principles (honesty, sharing, accountability, care/respect, healthy lifestyle)',
+      formatAnswer(q.zionPrinciplesAccept),
+    ],
+    [
+      'Membership Principles — Primary Member approves for household; I understand (not insurance; no guarantee of sharing; privilege; principles/commitments; guidelines date of service; voluntary contributions)',
+      formatAnswer(q.zionm1a),
+    ],
+    ['Membership Principles — Dispute Resolution & Responsibility', formatAnswer(q.zionm1b)],
+    ['Membership Principles — Acknowledgements & State Notices', formatAnswer(q.zionm1d)],
+    [
+      'Health History — I understand (accurate info for household; pre-existing waiting/limitations; 36 months symptom/treatment/medication free; undisclosed treated as disclosed at start)',
+      formatAnswer(q.zionmh2P),
+    ],
+    [
+      'Health History — Maternity and Delivery (waiting periods/sharing limits; includes waiting periods, pregnancy pre-existing, multiple/complicated deliveries; comply with Guidelines)',
+      formatAnswer(q.maternityDeliveryAck),
+    ],
+    [
+      'Health History — Primary Medical Treatments: past 36 months prior to membership start — symptoms, diagnosed, or treated?',
+      formatAnswer(q.primaryMemberConditionsPast36Mo),
+    ],
+    [
+      'Health History — Pre-existing / Yes: date of treatment; type of treatment; genetic/hereditary if applicable',
+      q.primaryMedicalTreatments?.trim() || 'N/A',
+    ],
+    ...(hasSpouse
+      ? [
+          [
+            "Health History — Spouse's Medical Conditions (optional details)",
+            q.spouseMedicalConditions?.trim() || 'N/A',
+          ],
+        ]
+      : []),
+    [
+      'Medical Cost Sharing Authorization\n\nMedical Cost Sharing is not insurance or an insurance policy nor is it offered through an insurance company. Whether anyone chooses to assist you with your medical bills will be totally voluntary. You are always personally responsible for the payment of your own medical bills.',
+      q.medicalCostSharingAuth ? 'YES' : 'NO',
+    ],
+    ['Referral', (q.referral ?? '').trim() || 'None provided'],
   ];
 
   autoTable(doc, {

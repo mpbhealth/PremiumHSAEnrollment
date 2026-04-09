@@ -45,18 +45,21 @@ export interface PaymentInfo {
 }
 
 export interface QuestionnaireAnswers {
-  businessTaxId: string;
   referral: string;
+  businessTaxId: string;
   zionPrinciplesAccept: string;
   zionm1a: string;
   zionm1b: string;
   zionm1d: string;
+  /** Legacy; keep for API/PDF compatibility */
   zionm1h: string;
   zionTimelySubmission: string;
   zionmh1: string;
   zionmh2P: string;
   zionmh2: string;
   zionmh3: string;
+  maternityDeliveryAck: string;
+  primaryMemberConditionsPast36Mo: string;
   primaryMedicalTreatments: string;
   spouseMedicalConditions: string;
   medicalCostSharingAuth: boolean;
@@ -145,8 +148,8 @@ const createDefaultFormData = (benefitId: string | null, agentId: string = ''): 
       achbank: '',
     },
     questionnaireAnswers: {
-      businessTaxId: '',
       referral: '',
+      businessTaxId: '',
       zionPrinciplesAccept: '',
       zionm1a: '',
       zionm1b: '',
@@ -157,6 +160,8 @@ const createDefaultFormData = (benefitId: string | null, agentId: string = ''): 
       zionmh2P: '',
       zionmh2: '',
       zionmh3: '',
+      maternityDeliveryAck: '',
+      primaryMemberConditionsPast36Mo: '',
       primaryMedicalTreatments: '',
       spouseMedicalConditions: '',
       medicalCostSharingAuth: false,

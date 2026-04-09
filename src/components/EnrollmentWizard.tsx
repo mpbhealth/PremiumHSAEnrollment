@@ -405,21 +405,20 @@ export default function EnrollmentWizard({ benefitId, onBenefitIdChange, agentId
       }
     }
 
-    if (!answers.zionPrinciplesAccept) newErrors.zionPrinciplesAccept = 'Please acknowledge Zion Principles';
+    if (!answers.zionPrinciplesAccept) newErrors.zionPrinciplesAccept = 'Please acknowledge Sedera Member Principles';
     if (!answers.zionm1a) newErrors.zionm1a = 'This field is required';
     if (!answers.zionm1b) newErrors.zionm1b = 'This field is required';
     if (!answers.zionm1d) newErrors.zionm1d = 'This field is required';
-    if (!answers.zionm1h) newErrors.zionm1h = 'This field is required';
-    if (!answers.zionTimelySubmission) newErrors.zionTimelySubmission = 'This field is required';
-    if (!answers.zionmh1) newErrors.zionmh1 = 'This field is required';
     if (!answers.zionmh2P) newErrors.zionmh2P = 'This field is required';
-    if (!answers.zionmh2) newErrors.zionmh2 = 'This field is required';
-    if (!answers.zionmh3.trim()) newErrors.zionmh3 = 'This field is required';
+    if (!answers.maternityDeliveryAck) newErrors.maternityDeliveryAck = 'This field is required';
+    if (!answers.primaryMemberConditionsPast36Mo) {
+      newErrors.primaryMemberConditionsPast36Mo = 'This field is required';
+    }
     if (!answers.medicalCostSharingAuth) newErrors.medicalCostSharingAuth = 'You must acknowledge and agree to the authorization';
 
     if (!answers.signatureData && !answers.typedSignature.trim()) {
-      newErrors.signatureData = 'Please provide either a drawn signature or typed name';
-      newErrors.typedSignature = 'Please provide either a drawn signature or typed name';
+      newErrors.signatureData = 'Please provide a drawn signature or typed name';
+      newErrors.typedSignature = 'Please provide a drawn signature or typed name';
     }
 
     setErrors(newErrors);
@@ -609,7 +608,7 @@ export default function EnrollmentWizard({ benefitId, onBenefitIdChange, agentId
     }
   };
 
-  const handleQuestionnaireChange = (field: keyof QuestionnaireAnswers, value: string) => {
+  const handleQuestionnaireChange = (field: keyof QuestionnaireAnswers, value: string | boolean) => {
     const updatedAnswers = { ...formData.questionnaireAnswers, [field]: value };
     saveFormData({ ...formData, questionnaireAnswers: updatedAnswers });
 

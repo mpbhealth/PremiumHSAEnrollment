@@ -19,6 +19,14 @@ export async function validatePromoCode(
 
   const normalizedCode = code.trim().toUpperCase();
 
+  if (!supabase) {
+    return {
+      success: false,
+      error:
+        'Promo codes are not available: add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file.',
+    };
+  }
+
   try {
     const { data, error } = await supabase
       .from('promocodes')
