@@ -613,7 +613,7 @@ Deno.serve(async (req: Request) => {
 
     const isPrimarySmoker = requestData.smoker.toLowerCase() === 'yes';
     const hasSmokerDependent = requestData.dependents.some(dep => dep.smoker.toLowerCase() === 'yes');
-    const tobaccoFeeAmount = (isPrimarySmoker || hasSmokerDependent) ? "50.00" : "0.00";
+    const tobaccoFeeAmount = (isPrimarySmoker || hasSmokerDependent) ? "75.00" : "0.00";
 
     const memberData = {
       CORPID: 1402,
