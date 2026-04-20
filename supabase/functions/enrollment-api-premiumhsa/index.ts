@@ -31,6 +31,7 @@ interface DecryptedSensitiveFields {
   dependentSsns: string[];
   dependentDobs: string[];
   dependentEmails: string[];
+  dependentPhones?: string[];
   benefitId: string;
   pdid: unknown;
   phone: string;
@@ -126,6 +127,15 @@ function mergeDecryptedFields(
     decrypted.dependentEmails.forEach((email, index) => {
       if (index < dependents.length && email !== undefined) {
         dependents[index].email = email;
+      }
+    });
+  }
+
+  if (decrypted.dependentPhones && Array.isArray(requestData.dependents)) {
+    const dependents = requestData.dependents as Array<Record<string, unknown>>;
+    decrypted.dependentPhones.forEach((phone, index) => {
+      if (index < dependents.length && phone !== undefined) {
+        dependents[index].phone = phone;
       }
     });
   }
