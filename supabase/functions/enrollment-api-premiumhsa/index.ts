@@ -709,18 +709,6 @@ Deno.serve(async (req: Request) => {
 
     const memberJsonString = JSON.stringify(memberData);
 
-    try {
-      const { error: logError } = await supabase.from("PremiumHSA_log").insert({
-        date: new Date().toISOString(),
-        log: memberJsonString,
-      });
-      if (logError) {
-        console.error("PremiumHSA_log insert failed:", logError.message);
-      }
-    } catch (logErr) {
-      console.error("PremiumHSA_log insert exception:", logErr);
-    }
-
     const formData = new URLSearchParams();
     formData.append("member", memberJsonString);
 
@@ -738,6 +726,19 @@ Deno.serve(async (req: Request) => {
     });
 
     const responseData = await response.json();
+
+    try {
+      const { error: logError } = await supabase.from("PremiumHsa_log").insert({
+        date: new Date().toISOString(),
+        log: memberJsonString,
+        response: JSON.stringify(responseData),
+      });
+      if (logError) {
+        console.error("PremiumHsa_log insert failed:", logError.message);
+      }
+    } catch (logErr) {
+      console.error("PremiumHsa_log insert exception:", logErr);
+    }
 
     return new Response(
       JSON.stringify({
