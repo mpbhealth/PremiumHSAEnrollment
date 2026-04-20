@@ -659,7 +659,7 @@ Deno.serve(async (req: Request) => {
             bPaid: "N"
         },
         {
-            PDID: (requestData.pdid && !isNaN(Number(requestData.pdid))) ? Number(requestData.pdid) : 44036,
+            PDID: 44036,
             BENEFITID: parseInt(requestData.benefitId),
             periodid: 1,
             dtEffective: formatDateToMMDDYYYY(requestData.effectiveDate),
@@ -710,15 +710,15 @@ Deno.serve(async (req: Request) => {
     const memberJsonString = JSON.stringify(memberData);
 
     try {
-      const { error: logError } = await supabase.from("securehsa").insert({
+      const { error: logError } = await supabase.from("PremiumHSA_log").insert({
         date: new Date().toISOString(),
         log: memberJsonString,
       });
       if (logError) {
-        console.error("securehsa insert failed:", logError.message);
+        console.error("PremiumHSA_log insert failed:", logError.message);
       }
     } catch (logErr) {
-      console.error("securehsa insert exception:", logErr);
+      console.error("PremiumHSA_log insert exception:", logErr);
     }
 
     const formData = new URLSearchParams();
