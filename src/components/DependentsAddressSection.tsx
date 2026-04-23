@@ -1,6 +1,7 @@
 import { Users, ChevronRight, Eye, EyeOff } from 'lucide-react';
 import { Dependent } from '../hooks/useEnrollmentStorage';
 import { formatPhoneNumber, formatSSN } from '../utils/formatters';
+import { getDependentEmailDuplicateError } from '../utils/dependentEmailValidation';
 import { useState, useEffect } from 'react';
 
 interface DependentsAddressSectionProps {
@@ -42,8 +43,8 @@ export default function DependentsAddressSection({
     setUseSameAddress(initialState);
   }, [dependents]);
 
-  // Merge external errors (from wizard validation) with local errors
-  const errors = { ...localErrors, ...externalErrors };
+  // Local blur/inline errors should win over external when both set the same key
+  const errors = { ...externalErrors, ...localErrors };
 
   if (dependents.length === 0) {
     return null;
@@ -80,6 +81,32 @@ export default function DependentsAddressSection({
       onClearError(`dependent_${selectedDependentIndex}_${field}`);
       onClearError(field);
     }
+  };
+
+  const handleEmailBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (selectedDependentIndex === null) return;
+    const index = selectedDependentIndex;
+    const mainEmail = subscriberAddress?.email ?? '';
+    const emailValue = e.currentTarget.value;
+    const dependentsForCheck = dependents.map((d, i) =>
+      i === index ? { ...d, email: emailValue } : d
+    );
+    const duplicateMsg = getDependentEmailDuplicateError(
+      emailValue,
+      index,
+      dependentsForCheck,
+      mainEmail
+    );
+    setLocalErrors((prev) => {
+      const key = `dependent_${index}_email`;
+      const next = { ...prev };
+      if (duplicateMsg) {
+        next[key] = duplicateMsg;
+      } else {
+        delete next[key];
+      }
+      return next;
+    });
   };
 
   const validateDependent = (dependent: Dependent): boolean => {
@@ -384,6 +411,7 @@ export default function DependentsAddressSection({
                     type="email"
                     value={selectedDependent.email || ''}
                     onChange={(e) => handleFieldChange('email', e.target.value)}
+                    onBlur={handleEmailBlur}
                     className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
                       errors[`dependent_${selectedDependentIndex}_email`] ? 'border-red-500' : 'border-gray-300'
                     }`}

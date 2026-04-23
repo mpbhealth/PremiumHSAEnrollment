@@ -3,6 +3,7 @@ import { useEnrollmentStorage, Dependent, PaymentInfo, QuestionnaireAnswers } fr
 import { getSecureHsaPricingOptions, calculateAgeFromDOB } from '../utils/pricingLogic';
 import { generateEnrollmentPDF } from '../utils/generateEnrollmentPDF';
 import { encryptSensitiveFields } from '../utils/payloadEncryption';
+import { getDependentEmailDuplicateError } from '../utils/dependentEmailValidation';
 import ProgressIndicator from './ProgressIndicator';
 import Step1PersonalInfo from './Step1PersonalInfo';
 import Step2Questionnaire from './Step2Questionnaire';
@@ -269,25 +270,15 @@ export default function EnrollmentWizard({ benefitId, onBenefitIdChange, agentId
         newErrors[`${prefix}email`] = 'Email address must be valid';
         hasError = true;
       } else {
-        // Check if email is unique (different from main customer and other dependents)
-        const dependentEmailLower = dependent.email.toLowerCase();
-        const mainEmailLower = formData.email.toLowerCase();
-
-        if (dependentEmailLower === mainEmailLower) {
-          newErrors[`${prefix}email`] = 'Your email address needs to be different from any other email addresses';
+        const duplicateMsg = getDependentEmailDuplicateError(
+          dependent.email,
+          index,
+          formData.dependents,
+          formData.email
+        );
+        if (duplicateMsg) {
+          newErrors[`${prefix}email`] = duplicateMsg;
           hasError = true;
-        } else {
-          // Check against other dependents
-          for (let i = 0; i < formData.dependents.length; i++) {
-            if (i !== index && formData.dependents[i].email) {
-              const otherEmailLower = formData.dependents[i].email.toLowerCase();
-              if (dependentEmailLower === otherEmailLower) {
-                newErrors[`${prefix}email`] = 'Your email address needs to be different from any other email addresses';
-                hasError = true;
-                break;
-              }
-            }
-          }
         }
       }
       if (!dependent.phone?.trim()) {
