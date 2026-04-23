@@ -5,7 +5,6 @@ import DocumentPdfModal from './DocumentPdfModal';
 
 const SEDERA_GUIDELINES_PDF_URL =
   'https://assets.ctfassets.net/01zqqfy0bb2m/4VoWp7GDUS5HBM2MpXY05A/6e9d1411f03954f593608899f36c5796/Sedera_-_Access_Membership_Guidelines_20221001.pdf';
-const SEDERA_PRIVACY_PDF = `/assets/${encodeURIComponent('Sedera HealthShare Privacy Policy.pdf')}`;
 
 interface Step2QuestionnaireProps {
   formData: FormData;
@@ -27,12 +26,10 @@ export default function Step2Questionnaire({
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasDrawnSignature, setHasDrawnSignature] = useState(false);
   const [guidelinesOpen, setGuidelinesOpen] = useState(false);
-  const [privacyPolicyOpen, setPrivacyPolicyOpen] = useState(false);
   const pointsRef = useRef<{ x: number; y: number }[]>([]);
   const allStrokesRef = useRef<{ x: number; y: number }[][]>([]);
 
   const closeGuidelinesModal = useCallback(() => setGuidelinesOpen(false), []);
-  const closePrivacyModal = useCallback(() => setPrivacyPolicyOpen(false), []);
 
   useEffect(() => {
     if (answers.signatureData && canvasRef.current) {
@@ -684,14 +681,6 @@ export default function Step2Questionnaire({
             <FileText className="w-5 h-5 shrink-0" />
             Guidelines
           </button>
-          <button
-            type="button"
-            onClick={() => setPrivacyPolicyOpen(true)}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-900 hover:bg-blue-800 text-white font-semibold rounded-lg transition duration-200 shadow-md hover:shadow-lg text-center"
-          >
-            <FileText className="w-5 h-5 shrink-0" />
-            Sedera Legal - Privacy Policy
-          </button>
         </div>
       </div>
 
@@ -798,15 +787,6 @@ export default function Step2Questionnaire({
         iframeTitle="Sedera Access Membership Guidelines PDF"
         closeAriaLabel="Close guidelines"
         titleId="sedera-guidelines-modal-title"
-      />
-      <DocumentPdfModal
-        open={privacyPolicyOpen}
-        onClose={closePrivacyModal}
-        pdfSrc={SEDERA_PRIVACY_PDF}
-        title="Sedera Legal - Privacy Policy"
-        iframeTitle="Sedera HealthShare Privacy Policy PDF"
-        closeAriaLabel="Close privacy policy"
-        titleId="sedera-privacy-policy-modal-title"
       />
     </div>
   );
