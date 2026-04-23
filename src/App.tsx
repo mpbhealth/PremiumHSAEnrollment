@@ -115,7 +115,7 @@ function App() {
                     onClick={() => setPrivacyPolicyOpen(true)}
                     className="text-xs text-gray-500 hover:text-gray-600 hover:underline p-0 m-0 bg-transparent border-0 cursor-pointer font-normal"
                   >
-                    Privacy policy
+                    Sedera Legal - Privacy Policy
                   </button>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
