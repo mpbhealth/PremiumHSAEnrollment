@@ -1,10 +1,11 @@
 import { FileText, ArrowLeft, PenTool } from 'lucide-react';
 import { FormData, QuestionnaireAnswers } from '../hooks/useEnrollmentStorage';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
+import DocumentPdfModal from './DocumentPdfModal';
 
 const SEDERA_GUIDELINES_PDF_URL =
   'https://assets.ctfassets.net/01zqqfy0bb2m/4VoWp7GDUS5HBM2MpXY05A/6e9d1411f03954f593608899f36c5796/Sedera_-_Access_Membership_Guidelines_20221001.pdf';
-const SEDERA_PRIVACY_URL = 'https://sedera.com/legal/privacy-policy/';
+const SEDERA_PRIVACY_PDF = `/assets/${encodeURIComponent('Sedera HealthShare Privacy Policy.pdf')}`;
 
 interface Step2QuestionnaireProps {
   formData: FormData;
@@ -25,8 +26,13 @@ export default function Step2Questionnaire({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasDrawnSignature, setHasDrawnSignature] = useState(false);
+  const [guidelinesOpen, setGuidelinesOpen] = useState(false);
+  const [privacyPolicyOpen, setPrivacyPolicyOpen] = useState(false);
   const pointsRef = useRef<{ x: number; y: number }[]>([]);
   const allStrokesRef = useRef<{ x: number; y: number }[][]>([]);
+
+  const closeGuidelinesModal = useCallback(() => setGuidelinesOpen(false), []);
+  const closePrivacyModal = useCallback(() => setPrivacyPolicyOpen(false), []);
 
   useEffect(() => {
     if (answers.signatureData && canvasRef.current) {
@@ -670,24 +676,22 @@ export default function Step2Questionnaire({
 
       <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 rounded-lg p-6">
         <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-center gap-3 sm:gap-4">
-          <a
-            href={SEDERA_GUIDELINES_PDF_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            type="button"
+            onClick={() => setGuidelinesOpen(true)}
             className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-900 hover:bg-blue-800 text-white font-semibold rounded-lg transition duration-200 shadow-md hover:shadow-lg text-center"
           >
             <FileText className="w-5 h-5 shrink-0" />
             Sedera Guidelines
-          </a>
-          <a
-            href={SEDERA_PRIVACY_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+          </button>
+          <button
+            type="button"
+            onClick={() => setPrivacyPolicyOpen(true)}
             className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-900 hover:bg-blue-800 text-white font-semibold rounded-lg transition duration-200 shadow-md hover:shadow-lg text-center"
           >
             <FileText className="w-5 h-5 shrink-0" />
             Sedera Legal - Privacy Policy
-          </a>
+          </button>
         </div>
       </div>
 
@@ -785,6 +789,25 @@ export default function Step2Questionnaire({
           Continue
         </button>
       </div>
+
+      <DocumentPdfModal
+        open={guidelinesOpen}
+        onClose={closeGuidelinesModal}
+        pdfSrc={SEDERA_GUIDELINES_PDF_URL}
+        title="Sedera Guidelines"
+        iframeTitle="Sedera Access Membership Guidelines PDF"
+        closeAriaLabel="Close guidelines"
+        titleId="sedera-guidelines-modal-title"
+      />
+      <DocumentPdfModal
+        open={privacyPolicyOpen}
+        onClose={closePrivacyModal}
+        pdfSrc={SEDERA_PRIVACY_PDF}
+        title="Sedera Legal - Privacy Policy"
+        iframeTitle="Sedera HealthShare Privacy Policy PDF"
+        closeAriaLabel="Close privacy policy"
+        titleId="sedera-privacy-policy-modal-title"
+      />
     </div>
   );
 }
