@@ -6,7 +6,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import DependentsAddressSection from './DependentsAddressSection';
 import PreExistingConditionsSection from './PreExistingConditionsSection';
 import PaymentInformationSection from './PaymentInformationSection';
-import { getSecureHsaPricingOptions } from '../utils/pricingLogic';
+import { getSecureHsaPricingOptions, TOBACCO_USE_MONTHLY_FEE } from '../utils/pricingLogic';
 import { applyPromoDiscount } from '../utils/promoCodeService';
 
 interface ApiResponse {
@@ -71,14 +71,13 @@ export default function Step2AddressInfo({
 
   const pricingSummary = useMemo(() => {
     const ONE_TIME_ENROLLMENT_FEE = 100;
-    const SMOKER_FEE = 50;
     const totalEnrollmentFee = formData.products.reduce((sum, p) => sum + (p.enrollmentFee || 0), 0);
     const totalAnnualFee = formData.products.reduce((sum, p) => sum + (p.annualFee || 0), 0);
 
     const isSubscriberSmoker = formData.smoker?.toLowerCase() === 'yes';
     const hasDependentSmoker = formData.dependents.some(dep => dep.smoker?.toLowerCase() === 'yes');
     const hasSmoker = isSubscriberSmoker || hasDependentSmoker;
-    const smokerFee = hasSmoker ? SMOKER_FEE : 0;
+    const smokerFee = hasSmoker ? TOBACCO_USE_MONTHLY_FEE : 0;
 
     const secureHsaPricing = getSecureHsaPricingOptions(formData.dob, formData.dependents);
     const selectedProduct = formData.products.find(p => p.id === 'secure-hsa');

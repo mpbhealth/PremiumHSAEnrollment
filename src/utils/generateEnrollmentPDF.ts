@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { FormData } from '../hooks/useEnrollmentStorage';
+import { TOBACCO_USE_MONTHLY_FEE } from './pricingLogic';
 import { maskSSN, maskCardNumber, maskRoutingNumber, maskAccountNumber } from './masking';
 
 /** Full Tax ID/EIN on PDF (9 digits formatted as XX-XXXXXXX). */
@@ -193,7 +194,9 @@ export async function generateEnrollmentPDF(formData: FormData): Promise<Blob> {
   const hasDependentSmoker = formData.dependents.some(dep => dep.smoker.toLowerCase() === 'yes');
 
   const productRows = formData.products.map((product) => {
-    const smokerFee = (isSubscriberSmoker || hasDependentSmoker) ? '$50.00' : '$0.00';
+    const smokerFee = (isSubscriberSmoker || hasDependentSmoker)
+      ? `$${TOBACCO_USE_MONTHLY_FEE.toFixed(2)}`
+      : '$0.00';
     const planDisplay = product.selectedPlan || 'N/A';
 
     return [

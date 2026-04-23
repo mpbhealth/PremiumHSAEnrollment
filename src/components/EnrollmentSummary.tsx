@@ -1,7 +1,7 @@
 import { ShoppingCart, X, AlertCircle, Check, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Product, Dependent, AppliedPromo } from '../hooks/useEnrollmentStorage';
-import { getSecureHsaPricingOptions } from '../utils/pricingLogic';
+import { getSecureHsaPricingOptions, TOBACCO_USE_MONTHLY_FEE } from '../utils/pricingLogic';
 import { extractProductIdFromDropdown, extractPriceFromDropdown } from '../utils/formatters';
 import { validatePromoCode, applyPromoDiscount } from '../utils/promoCodeService';
 
@@ -118,7 +118,7 @@ export default function EnrollmentSummary({
 
   const isSubscriberSmoker = smoker === 'Yes';
   const hasDependentSmoker = dependents.some(dep => dep.smoker === 'Yes');
-  const tobaccoFee = (isSubscriberSmoker || hasDependentSmoker) ? 50.00 : 0;
+  const tobaccoFee = (isSubscriberSmoker || hasDependentSmoker) ? TOBACCO_USE_MONTHLY_FEE : 0;
 
   const baseInitialPayment = totalEnrollmentFee + totalAnnualFee + 100;
   const finalInitialPayment = applyPromoDiscount(baseInitialPayment, appliedPromo);

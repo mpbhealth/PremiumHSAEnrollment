@@ -8,6 +8,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey, Cache-Control",
 };
 
+/** Monthly tobacco fee in API payload (matches `TOBACCO_USE_MONTHLY_FEE` in `src/utils/pricingLogic.ts`). */
+const TOBACCO_USE_MONTHLY_FEE = "75.00";
+
 interface EncryptedBlock {
   encryptedData: string;
   encryptedKey: string;
@@ -623,7 +626,7 @@ Deno.serve(async (req: Request) => {
 
     const isPrimarySmoker = requestData.smoker.toLowerCase() === 'yes';
     const hasSmokerDependent = requestData.dependents.some(dep => dep.smoker.toLowerCase() === 'yes');
-    const tobaccoFeeAmount = (isPrimarySmoker || hasSmokerDependent) ? "75.00" : "0.00";
+    const tobaccoFeeAmount = (isPrimarySmoker || hasSmokerDependent) ? TOBACCO_USE_MONTHLY_FEE : "0.00";
 
     const memberData = {
       CORPID: 1402,

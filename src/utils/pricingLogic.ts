@@ -1,5 +1,8 @@
 import { Dependent } from '../hooks/useEnrollmentStorage';
 
+/** Monthly add-on when subscriber or any dependent uses tobacco (matches API and PDF). */
+export const TOBACCO_USE_MONTHLY_FEE = 75;
+
 export interface SecureHsaPricingOption {
   productId: string;
   price: number;
