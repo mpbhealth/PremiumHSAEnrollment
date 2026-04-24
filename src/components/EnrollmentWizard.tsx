@@ -717,12 +717,23 @@ export default function EnrollmentWizard({ benefitId, onBenefitIdChange, agentId
           const data = await res.json();
 
           if (res.ok || res.status === 400) {
-            const transactionFailed = data.data?.TRANSACTION?.SUCCESS === false || data.data?.TRANSACTION?.SUCCESS === "false";
-            const transactionSuccess = !transactionFailed && (data.data?.TRANSACTION?.SUCCESS === true || data.data?.TRANSACTION?.SUCCESS === "true");
-            const hasSuccessFlag = !transactionFailed && data.success === true && data.data?.SUCCESS === "true";
-            const isSuccessful = transactionSuccess || hasSuccessFlag;
+            const transactionFailed =
+              data.data?.TRANSACTION?.SUCCESS === false ||
+              data.data?.TRANSACTION?.SUCCESS === "false";
+            const transactionSuccess =
+              !transactionFailed &&
+              (data.data?.TRANSACTION?.SUCCESS === true ||
+                data.data?.TRANSACTION?.SUCCESS === "true");
+            const hasSuccessFlag =
+              !transactionFailed &&
+              data.success === true &&
+              data.data?.SUCCESS === "true";
 
-            if (!isSuccessful) {
+            // MEC variant retention guard: PDF is uploaded only when this is true.
+            const enrollmentSuccess =
+              (transactionSuccess || hasSuccessFlag) && !transactionFailed;
+
+            if (!enrollmentSuccess) {
               setResponse(data);
               clearFormDataOnly();
               setLoading(false);
@@ -734,17 +745,15 @@ export default function EnrollmentWizard({ benefitId, onBenefitIdChange, agentId
 
             try {
               await generateAndUploadPDF(extractedMemberId);
-            } catch (pdfError) {
-              // PDF generation error handled silently
+            } catch {
+              // Intentionally swallow: never block the success UI on a storage failure.
             }
 
             setShowThankYou(true);
             clearStorage();
             setLoading(false);
 
-            sendAdvisorNotification(agentParam).catch(() => {
-              // Advisor notification error handled silently
-            });
+            sendAdvisorNotification(agentParam).catch(() => {});
             return;
           }
 
@@ -957,6 +966,7 @@ export default function EnrollmentWizard({ benefitId, onBenefitIdChange, agentId
         lastName: formData.lastName,
         benefitId: formData.benefitId,
         enrollmentDate: new Date().toISOString(),
+        enrollmentMemberId,
       }));
 
       const pdfResponse = await fetch(pdfApiUrl, {
@@ -983,7 +993,6 @@ export default function EnrollmentWizard({ benefitId, onBenefitIdChange, agentId
 
         if (enrollmentMemberId) {
           await sendPdfToGateway(enrollmentMemberId, pdfResult.pdfUrl);
-        } else {
         }
       } else {
         throw new Error(pdfResult.error || 'PDF upload failed');
