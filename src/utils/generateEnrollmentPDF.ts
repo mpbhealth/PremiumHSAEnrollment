@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { FormData } from '../hooks/useEnrollmentStorage';
-import { TERMS_AND_CONDITIONS_ENROLLMENT_TEXT } from '../constants/termsAndConditionsEnrollment';
+import { TERMS_AND_CONDITIONS_PARAGRAPHS } from '../constants/termsAndConditionsEnrollment';
 import { TOBACCO_USE_MONTHLY_FEE } from './pricingLogic';
 import { maskSSN, maskCardNumber, maskRoutingNumber, maskAccountNumber } from './masking';
 
@@ -43,26 +43,67 @@ export async function generateEnrollmentPDF(formData: FormData): Promise<Blob> {
   const pageHeight = doc.internal.pageSize.getHeight();
   let yPosition = 15;
 
-  const appendLegalTextPages = (
-    text: string,
+  const appendTermsBlocksToPdf = (
+    paragraphs: readonly string[],
     startY: number,
     marginX: number,
     maxWidth: number,
     lineHeight: number,
     bottomMargin: number
   ): number => {
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    const lines = doc.splitTextToSize(text, maxWidth);
+    const fullBoldExact = new Set([
+      'Authorization to debit or withdraw funds.',
+      'PLEASE READ THESE TERMS AND CONDITIONS CAREFULLY BEFORE USING THIS WEBSITE.',
+      '10DLC Messaging Disclaimer',
+    ]);
+
+    const isShortColonHeading = (text: string): boolean =>
+      text.endsWith(':') && text.length <= 120 && !text.includes('. ');
+
     let y = startY;
-    for (let i = 0; i < lines.length; i++) {
-      if (y > pageHeight - bottomMargin) {
-        doc.addPage();
-        y = 20;
+
+    const appendWrapped = (text: string, bold: boolean) => {
+      doc.setFontSize(9);
+      doc.setFont('helvetica', bold ? 'bold' : 'normal');
+      const lines = doc.splitTextToSize(text, maxWidth);
+      for (let i = 0; i < lines.length; i++) {
+        if (y > pageHeight - bottomMargin) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.text(lines[i], marginX, y);
+        y += lineHeight;
       }
-      doc.text(lines[i], marginX, y);
-      y += lineHeight;
+    };
+
+    for (const para of paragraphs) {
+      if (fullBoldExact.has(para) || isShortColonHeading(para)) {
+        appendWrapped(para, true);
+        continue;
+      }
+
+      if (para.startsWith('For example:')) {
+        appendWrapped('For example:', true);
+        appendWrapped(para.slice('For example:'.length), false);
+        continue;
+      }
+
+      const numbered = para.match(/^(\d{1,2}\.\s[^.]+\.)([\s\S]*)$/);
+      if (numbered) {
+        appendWrapped(numbered[1], true);
+        appendWrapped(numbered[2], false);
+        continue;
+      }
+
+      if (para.startsWith('11A.')) {
+        appendWrapped('11A.', true);
+        appendWrapped(para.slice(4), false);
+        continue;
+      }
+
+      appendWrapped(para, false);
     }
+
     return y;
   };
 
@@ -384,8 +425,8 @@ export async function generateEnrollmentPDF(formData: FormData): Promise<Blob> {
   doc.text('Terms and Conditions', 14, yPosition);
   yPosition += 10;
 
-  yPosition = appendLegalTextPages(
-    TERMS_AND_CONDITIONS_ENROLLMENT_TEXT,
+  yPosition = appendTermsBlocksToPdf(
+    TERMS_AND_CONDITIONS_PARAGRAPHS,
     yPosition,
     14,
     pageWidth - 28,

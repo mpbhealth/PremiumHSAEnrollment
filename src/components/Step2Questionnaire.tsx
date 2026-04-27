@@ -1,6 +1,6 @@
 import { FileText, ArrowLeft, PenTool } from 'lucide-react';
 import { FormData, QuestionnaireAnswers } from '../hooks/useEnrollmentStorage';
-import { TERMS_AND_CONDITIONS_ENROLLMENT_TEXT } from '../constants/termsAndConditionsEnrollment';
+import { TermsAndConditionsFormatted } from './TermsAndConditionsFormatted';
 import { useRef, useState, useEffect, useCallback } from 'react';
 import DocumentPdfModal from './DocumentPdfModal';
 
@@ -624,9 +624,9 @@ export default function Step2Questionnaire({
               <div
                 role="region"
                 aria-label="Terms and Conditions full text"
-                className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap max-h-[min(17.5rem,42vh)] sm:max-h-[min(18rem,40vh)] overflow-y-auto overflow-x-hidden overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch]"
+                className="max-h-[min(17.5rem,42vh)] sm:max-h-[min(18rem,40vh)] overflow-y-auto overflow-x-hidden overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch]"
               >
-                {TERMS_AND_CONDITIONS_ENROLLMENT_TEXT}
+                <TermsAndConditionsFormatted />
               </div>
             </div>
 
