@@ -1,6 +1,6 @@
 /**
  * Full Terms and Conditions shown on Step 2 and appended to the enrollment PDF.
- * Keep in sync with stakeholder-approved copy (see docs/Terms and condition section.md).
+ * Layout/replication spec: docs/Terms and condition section.md
  */
 const TERMS_AND_CONDITIONS_RAW = `I understand that Mpowering Benefits Inc and it's affiliates is not health insurance and that the programs offered by Mpowering Benefits are administered by a separate nonprofit health care entity who members voluntarily share each other's medical expenses in accordance with guidelines adopted by the members. These programs are not insurance and is not regulated as insurance, where members do not assume any legal obligation to share in the payment of any medical expense incurred by another member. I understand that the sharing guidelines may be updated at any time during the year, and the full plan guidelines can be found on the member portal.
 
