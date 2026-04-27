@@ -79,19 +79,24 @@ export default function PaymentInformationSection({
         <label className="block text-sm font-medium text-gray-700 mb-3">
           Payment Method <span className="text-red-500">*</span>
         </label>
-        <div className="grid grid-cols-2 gap-4">
-          <button
-            type="button"
-            onClick={() => onChange('paymentMethod', 'credit-card')}
-            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
-              payment.paymentMethod === 'credit-card'
-                ? 'border-blue-600 bg-blue-50 text-blue-700'
-                : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
-            }`}
-          >
-            <CreditCard className="w-5 h-5" />
-            <span className="font-semibold">Credit Card</span>
-          </button>
+        <div className="grid grid-cols-2 gap-4 items-start">
+          <div className="flex flex-col gap-1.5">
+            <button
+              type="button"
+              onClick={() => onChange('paymentMethod', 'credit-card')}
+              className={`flex w-full items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
+                payment.paymentMethod === 'credit-card'
+                  ? 'border-blue-600 bg-blue-50 text-blue-700'
+                  : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+              }`}
+            >
+              <CreditCard className="w-5 h-5" />
+              <span className="font-semibold">Credit Card</span>
+            </button>
+            <p className="text-xs text-gray-600 text-center sm:text-left">
+              A 3% credit card processing fee will apply
+            </p>
+          </div>
           <button
             type="button"
             onClick={() => onChange('paymentMethod', 'ach')}
