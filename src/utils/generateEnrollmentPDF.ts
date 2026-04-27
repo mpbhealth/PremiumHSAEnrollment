@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { FormData } from '../hooks/useEnrollmentStorage';
+import { TERMS_AND_CONDITIONS_ENROLLMENT_TEXT } from '../constants/termsAndConditionsEnrollment';
 import { TOBACCO_USE_MONTHLY_FEE } from './pricingLogic';
 import { maskSSN, maskCardNumber, maskRoutingNumber, maskAccountNumber } from './masking';
 
@@ -41,6 +42,29 @@ export async function generateEnrollmentPDF(formData: FormData): Promise<Blob> {
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   let yPosition = 15;
+
+  const appendLegalTextPages = (
+    text: string,
+    startY: number,
+    marginX: number,
+    maxWidth: number,
+    lineHeight: number,
+    bottomMargin: number
+  ): number => {
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    const lines = doc.splitTextToSize(text, maxWidth);
+    let y = startY;
+    for (let i = 0; i < lines.length; i++) {
+      if (y > pageHeight - bottomMargin) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.text(lines[i], marginX, y);
+      y += lineHeight;
+    }
+    return y;
+  };
 
   try {
     const logoBase64 = await loadImageAsBase64('/assets/MPB-Health-No-background.png');
@@ -325,6 +349,10 @@ export async function generateEnrollmentPDF(formData: FormData): Promise<Blob> {
       'Medical Cost Sharing Authorization\n\nMedical Cost Sharing is not insurance or an insurance policy nor is it offered through an insurance company. Whether anyone chooses to assist you with your medical bills will be totally voluntary. You are always personally responsible for the payment of your own medical bills.',
       q.medicalCostSharingAuth ? 'YES' : 'NO',
     ],
+    [
+      'Terms and Conditions — Applicant read and accepted the full text presented in the questionnaire',
+      q.termsAndConditionsAccept ? 'YES' : 'NO',
+    ],
     ['Referral', (q.referral ?? '').trim() || 'None provided'],
   ];
 
@@ -346,17 +374,25 @@ export async function generateEnrollmentPDF(formData: FormData): Promise<Blob> {
     yPosition = 20;
   }
 
+  if (yPosition > pageHeight - 40) {
+    doc.addPage();
+    yPosition = 20;
+  }
+
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.text('Terms and Conditions for SECURE HSA', 14, yPosition);
-  yPosition += 7;
+  doc.text('Terms and Conditions', 14, yPosition);
+  yPosition += 10;
 
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  const termsText = 'Medical Cost Sharing is not insurance or an insurance policy nor is it offered through an insurance company. Medical Cost Sharing is not a discount healthcare program nor a discount health card program. Whether anyone chooses to assist you with your medical bills will be totally voluntary, as neither the organization nor any other member is liable for or may be compelled to make the payment of your medical bill. As such, medical cost sharing should never be considered to be insurance. Whether you receive any amounts for medical expenses and whether or not medical cost sharing continues to operate, you are always personally responsible for the payment of your own medical bills. Medical Cost Sharing is not subject to the regulatory requirements or consumer protections of your particular State\'s Insurance Code or Statutes.';
-  const termsLines = doc.splitTextToSize(termsText, pageWidth - 28);
-  doc.text(termsLines, 14, yPosition);
-  yPosition += (termsLines.length * 5) + 10;
+  yPosition = appendLegalTextPages(
+    TERMS_AND_CONDITIONS_ENROLLMENT_TEXT,
+    yPosition,
+    14,
+    pageWidth - 28,
+    4.5,
+    22
+  );
+  yPosition += 8;
 
   if (yPosition > pageHeight - 60) {
     doc.addPage();

@@ -1,5 +1,6 @@
 import { FileText, ArrowLeft, PenTool } from 'lucide-react';
 import { FormData, QuestionnaireAnswers } from '../hooks/useEnrollmentStorage';
+import { TERMS_AND_CONDITIONS_ENROLLMENT_TEXT } from '../constants/termsAndConditionsEnrollment';
 import { useRef, useState, useEffect, useCallback } from 'react';
 import DocumentPdfModal from './DocumentPdfModal';
 
@@ -611,6 +612,38 @@ export default function Step2Questionnaire({
             </label>
             {errors.medicalCostSharingAuth && (
               <p className="mt-2 text-sm text-red-500">{errors.medicalCostSharingAuth}</p>
+            )}
+          </div>
+
+          <div className="border-t border-gray-200 pt-6 space-y-4">
+            <p className="font-semibold text-gray-900">
+              Terms and Conditions
+              <span className="text-red-500 ml-1">*</span>
+            </p>
+            <div className="bg-gray-50 border border-gray-300 rounded-lg p-4 mb-4">
+              <div
+                role="region"
+                aria-label="Terms and Conditions full text"
+                className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap max-h-[min(17.5rem,42vh)] sm:max-h-[min(18rem,40vh)] overflow-y-auto overflow-x-hidden overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch]"
+              >
+                {TERMS_AND_CONDITIONS_ENROLLMENT_TEXT}
+              </div>
+            </div>
+
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                name="termsAndConditionsAccept"
+                checked={answers.termsAndConditionsAccept}
+                onChange={(e) => onQuestionnaireChange('termsAndConditionsAccept', e.target.checked)}
+                className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"
+              />
+              <span className="text-sm text-gray-700">
+                I have read and accept the Terms and Conditions
+              </span>
+            </label>
+            {errors.termsAndConditionsAccept && (
+              <p className="mt-2 text-sm text-red-500">{errors.termsAndConditionsAccept}</p>
             )}
           </div>
         </div>

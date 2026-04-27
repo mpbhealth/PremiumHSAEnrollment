@@ -1,0 +1,111 @@
+/**
+ * Full Terms and Conditions shown on Step 2 and appended to the enrollment PDF.
+ * Keep in sync with stakeholder-approved copy (see docs/Terms and condition section.md).
+ */
+export const TERMS_AND_CONDITIONS_ENROLLMENT_TEXT = `I understand that Mpowering Benefits Inc and it's affiliates is not health insurance and that the programs offered by Mpowering Benefits are administered by a separate nonprofit health care entity who members voluntarily share each other's medical expenses in accordance with guidelines adopted by the members. These programs are not insurance and is not regulated as insurance, where members do not assume any legal obligation to share in the payment of any medical expense incurred by another member. I understand that the sharing guidelines may be updated at any time during the year, and the full plan guidelines can be found on the member portal.
+
+I understand and agree that rates are subject to change and will be adjusted at any moment.
+
+Authorization to debit or withdraw funds.
+
+I understand that this authorization will remain in effect until I cancel it in writing, and I agree to notify Mpowering Benefits, Inc and its affiliates in writing of any changes in my account information or termination of this authorization at least 30 days prior to the next billing date. A cancellation form must be completed within the member portal by the deadline of the 20th of each month at 3PM Eastern Time Zone for the cancellation to be processed. If the payment dates fall on a weekend or holiday, I understand that the payments may be executed on the next business day. For ACH debits to checking/savings account, I understand that because these are electronic transactions, these funds may be withdrawn from the account as soon as the noted periodic transaction dates. I acknowledge that the origination of transactions to my account must comply with the provisions of U.S. law. I certify that I'm an authorized user of this bank account and will not dispute the scheduled transactions with the bank, provided the transactions correspond to the terms indicated in this authorization form.
+
+Refund Policy:
+
+Refunds are applicable only under the following circumstances:
+
+Billing error:
+
+For example: If the customer is charged twice in the same month or the amount charged does not match the price table due to a system error, a full refund of the incorrect charge will be issued.
+
+Proof of fraud:
+
+If fraudulent activity is proven with documentation, improperly charged amounts will be refunded (pending approval).
+
+Important:
+
+Refunds will not be issued for regular and properly processed charges, as our plans are based on full monthly payment to cover services provided. Refunds will only be considered after a formal request from the member, accompanied by documentation when applicable.
+
+Cancellation Policy:
+
+Members are free to cancel their subscription at any time but must observe the conditions below:
+
+Effective Cancellation Date:
+
+Cancellation will be effective on the 1st day of the month following receipt of the request. There will be no retroactive or prorated cancellation for the current month.
+
+Cancellation Procedure:
+
+To request cancellation, submit your request through our Cancelation Form in the portal. Ensure that all outstanding monthly fees are paid before submitting the request.
+
+Important Note:
+
+Charges made prior to the effective cancellation date will not be refunded. After cancellation, access to benefits and services will automatically end.
+
+Medical Cost Sharing/Health Sharing is not insurance nor an insurance policy, nor is it offered by an insurance company. Medical Cost Sharing/Health Sharing is also not a health discount program or a health discount card program.
+
+Whether or not someone chooses to help with your medical expenses is entirely voluntary, as neither the organization nor any other member is legally responsible or can be required to pay your medical bills. Therefore, Medical Cost Sharing/ Health Sharing should never be considered insurance.
+
+Regardless of whether you receive any amount toward medical expenses, and regardless of the continuation of the sharing program's operation, you remain personally responsible for payment of your own medical bills.
+
+Medical Cost Sharing/Health Sharing is not subject to regulatory requirements or consumer protections provided under your state's Insurance Code or Insurance Laws.
+
+I agree to abstain from the use of any illicit/illegal drugs and from excessive alcohol consumption, which are harmful to the body. Tobacco users will incur an additional monthly fee per household in the sharing amount.
+
+I believe that I have an obligation to care for my family and that any form of physical, mental, or emotional abuse against a family member or any other person is morally wrong.
+
+I understand that for any of my medical expenses to be considered for sharing, bills must be submitted within the required timeframe.
+
+I agree to submit to mediation, followed by binding arbitration if necessary, in any dispute with Mpowering Benefits Inc and its associated entities, or affiliates.
+
+PLEASE READ THESE TERMS AND CONDITIONS CAREFULLY BEFORE USING THIS WEBSITE.
+
+These terms and conditions (these "Terms and Conditions") create a contract between you and Mpowering Benefits Inc (the "Company"). Your use of this website or any of the Company's websites (each, a "Site") for services and information (the "Services" as more fully described below) offered by the Company, or any of its subsidiaries, is predicated upon your acceptance of these Terms and Conditions. To confirm your understanding and acceptance of these Terms and Conditions click the "I accept" box on the registration page of the Site. Such acceptance date shall become the effective date of these Terms and Conditions ("Effective Date"). In these Terms and Conditions, both you and the Company may be referred to individually as a "party" and collectively as the "parties." These Terms and Conditions, together with the Company's Privacy Policy , governs your use of the Services and the Site. If you choose to accept these Terms and Conditions, you must do so as written, without modification. If you do not accept these Terms and Conditions, you will not be allowed to receive the Services and may not utilize the Site. BY USING THE SITE AND CLICKING THE "I ACCEPT" BOX, YOU ACCEPT THE TERMS AND CONDITIONS DESCRIBED IN THESE TERMS AND CONDITIONS. YOU WARRANT AND REPRESENT THAT YOU ARE AT LEAST 18 YEARS OF AGE AND THAT YOU HAVE THE LEGAL AUTHORITY TO ENTER INTO THESE TERMS AND CONDITIONS AS AN INDIVIDUAL OR ON BEHALF OF YOUR EMPLOYER.
+
+1. Services. The programs and memberships offered by Mpowering Benefits and its affiliates are administered by a nonprofit charitable organization that offers and administers a voluntary, benevolent cost sharing organization (collectively, the "Services"). By accepting these Terms and Conditions, you agree to provide the information requested on the registration page of the Site completely and accurately, and to update your information as necessary. The Company routinely maintains and updates personally identifying information which may include business and/or personal credit card accounts, bank accounts, other financial accounts, address information, telephone information, and email information ("Customer Information"). The Company will provide the Services in accordance with its then-current pricing, as set forth on the Site. The Company makes no warranties or guarantees whatsoever pertaining to the Services.
+
+2. Intellectual Property Rights. The Company hereby grants to you during the Term (as defined below) a non-exclusive, non-assignable, non-transferable, non-sublicensable, limited license ("License") to use the Site and the Services. You shall not be entitled to a License to the Company's trademarks, service marks, trade dress, patents, patents pending, or other intellectual property (the "Intellectual Property"). You shall not copy or reverse engineer, in whole in or part, the Site, Services, or Intellectual Property. All rights not expressly granted by the Company to you under these Terms and Conditions are expressly reserved to the Company. To the extent you upload content in connection with the Site or a Service, including any and all communications that you make with the Company through the Service, you grant the Company a royalty-free, worldwide, non-exclusive, perpetual, irrevocable, transferable license, to copy, distribute, display publicly, make available to the public, adapt, sub-license, process and translate such content, combine such content with or incorporate such content into other content and modify and create derivative works of such content; in each case in connection with the Company's operation of the Site and/or a Service, and in the Company's other media platforms, applications and services, and those of its affiliated entities. You further waive and forever disclaim all rights of attribution with respect to the use of your content.
+
+3. Use of Services. Use of the Services must comply with any policies and procedures made available to you, including those found in the Company Membership Guidelines. Do not misuse the Services. You agree not to interfere with the Company's offering of Services or try to access them using a method other than the interface and the instructions that we provide. You may use the Services only as permitted by law. The Company may temporarily or permanently deny, limit, suspend, or terminate the Services, remove content and take technical and legal measures to remove your access to the Services at any time and for any reason. In connection with your use of the Services, we may send you service announcements, administrative messages, and other information. You may opt out of some of those communications. Some of our Services are available on mobile devices. Do not use such Services in a way that distracts you and prevents you from obeying traffic or safety laws. You agree to the following prohibited uses: You shall not copy, publish, distribute, rent, or resell the Services or Intellectual Property, in whole or in part. You understand and agree that we monitor usage on the Site and the Services and that we may share your use of the Site and Services with law enforcement agencies and officials in response to inquiries or if we have reason to believe that your use of the Site and Services is for an unlawful purpose. We may also share your use of the Site and Services as required by law, a court order, a subpoena, or as the Company determines is necessary or advisable to protect its interests. You shall not use the Services as the basis for making decisions concerning loans, credit, insurance, employment, or other decisions. The Services are not to be relied upon by any person, including you, for any purpose. You are solely responsible for all decisions you make in any way utilizing the information generated as a result of using the Services.
+
+4. Updates. THE COMPANY RESERVES THE RIGHT TO AMEND THE SITE AND THESE TERMS AND CONDITIONS IN ITS DISCRETION FROM TIME TO TIME. YOU ARE RESPONSIBLE FOR MONITORING THE SITE FOR UPDATES TO THESE TERMS AND CONDITIONS. The Company may, but is not obligated to, offer upgrades, updates, and improvements to the Site and Services, and to add or discontinue any Services. These Terms and Conditions control the relationship between the Company and you. They do not create any third-party beneficiary rights.
+
+5. Other Websites. The Site may contain links to other websites. The Company may or may not own, operate or monitor such websites, their services or content. The information and content posted on other websites may not be compatible with your requirements, you may object to their content, or find such content to be objectionable, improper, unlawful or immoral. By linking to another website, the Company does not endorse, or sponsor their content, or confirm their accuracy, credibility, authenticity, validity, integrity or legality. The Company assumes no responsibility or liability for any third-party services or contents, or their availability. The Services and/or the Site may include paid advertisements, sponsored links and commercial information ("Advertisements"). By clicking links to Advertisements, you may be transferred to a service of an advertiser or receive any other messages, information or offers from the advertiser and from others. The Company is not responsible for any of an advertisers' practices, including their privacy practices, or for the content of their services, information, messages or offers.
+
+6. Payment. The Company may require you to make payments for Services in immediately available United States dollars by the options available on the Site. All sales on the Site are final. The Company has no obligation whatsoever to issue refunds or credits for purchases on the Site, or otherwise. The Company assumes no responsibility for delays in credit or debit card processing or any other form of payment. You warrant and represent that your use of any credit, debit, or other permitted form of payment is authorized by the holder of such form of payment.
+
+7. Taxes. You are responsible for paying all applicable taxes in connection with your purchase of the Services.
+
+8. Term and Termination. The term of these Terms and Conditions shall begin on the Effective Date and continue until terminated as expressly provided in these Terms and Conditions (the "Term"). You may terminate these Terms and Conditions at any time by filling out the cancelation form . The Company may immediately terminate these Terms and Conditions as required by law or due to your breach of any provision of these Terms and Conditions in the Company's determination. Termination will become effective on the 1st of the following month. Upon termination, all license rights granted herein shall immediately terminate and be revoked, and you will not be allowed to use the Site or purchase Services. You shall be permitted to use the Services you purchased before termination, provided that your continued use will be subject to these Terms and Conditions.
+
+9. Independent Parties. Nothing in these Terms and Conditions shall create an employer-employee, partner, joint venturer or agent relationship between you and the Company.
+
+10. Indemnification. You shall defend, indemnify, and hold harmless the Company and its affiliates, and their employees, managers, members, officers, shareholders, directors, agents, representatives, consultants, contractors, insurers, attorneys, successors, and assigns from and against all claims, demands, judgments, losses, liabilities, damages, costs, fees, expenses, including attorney fees and court costs) arising out of your (a) unauthorized use of the Site or Services, (b) breach of these Terms and Conditions, or (c) otherwise prohibited or illegal activity.
+
+11. Disclaimer of Warranty. THE COMPANY: (A) MAKES NO WARRANTIES, EXPRESS, IMPLIED, STATUTORY OR OTHERWISE, WITH RESPECT TO THE SERVICES, AND (B) SPECIFICALLY DISCLAIMS ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND ANY WARRANTY AGAINST NON-INFRINGEMENT OF ANY INTELLECTUAL PROPERTY RIGHT OF ANY THIRD PARTY. THE COMPANY DOES NOT WARRANT THAT ANY OF THE SERVICES WILL MEET YOUR EXPECTATIONS OR REQUIREMENTS, OR THAT THEIR CONTENT OR METHOD OF DELIVERY WILL BE FREE OF ERROR (INCLUDING FACTS, STATEMENTS, RETENTION, DELETION, DISCLOSURE OR ANY OTHER USE OR LOSS OF YOUR CONTENT ON THE SERVICE OR WEBSITE, SERVICE LEVELS, DOWNLOAD SPEED, AND WI-FI, HOTSPOT, OR INTERNET CONNECTIVITY), OR THAT DEFECTS THEREIN SHALL BE CORRECTED. USE OF THE SERVICES IS NOT A SUBSTITUTE FOR HEALTH INSURANCE. THE PROVISIONS OF THIS SECTION SHALL BE IN EFFECT TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW.
+
+11A. Mpowering Benefits, Inc and its memberships does not subrogate or pursue reimbursement of medical bills or expenses paid or shared through the community. Any funds shared by members are gifts voluntarily given, and no right of recovery, lien, or subrogation is created or implied against any member, provider, or third party. Members and providers acknowledge that Mpowering Benefits, Inc and its affiliates is not an insurance company and that participation in the community does not create any legal or equitable claim for reimbursement or recovery of shared amounts.
+
+12. Limitations of Liability. THE COMPANY SHALL NOT BE LIABLE TO YOU OR ANY OTHER PARTY FOR LOST PROFITS, SPECIAL, INDIRECT, INCIDENTAL, CONSEQUENTIAL, EXEMPLARY OR PUNITIVE DAMAGES, EVEN IF A PARTY HAS BEEN PREVIOUSLY ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. THE PROVISIONS OF THIS SECTION SHALL BE IN EFFECT TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW. THE COMPANY'S TOTAL LIABILITY, AND YOUR SOLE AND EXCLUSIVE REMEDY FOR ANY CLAIM, UNDER THESE TERMS AND CONDITIONS SHALL NOT EXCEED THE TOTAL AMOUNT PAID BY YOU TO THE COMPANY IN THE MONTH IN WHICH A CLAIM GIVING RISE TO LIABILITY HEREUNDER OCCURS.
+
+13. Notice of Copyright Infringement. If you believe that any content available through our Site or Services infringes a copyright claimed by you, please notify us via email at indo@mympb.com. In addition to identifying the copyrighted material, please include your full name and contact information. We will do our best to ensure compliance with all federal laws governing copyrights. Please be aware that if you knowingly materially misrepresent that material or activity in our Services or on our Site is infringing your copyright, you may be held liable for damages, including costs and attorneys' fees.
+
+14. Compliance with Applicable Law. You shall comply with all applicable international, federal, state, and local laws, rules, and regulations in your use of this Site and the Services.
+
+15. Notice. All notices provided for herein shall be given either by electronic mail, recognized international express courier, postage pre-paid, or by First Class United States Mail, postage pre-paid, to the address listed on the Site in our case, and to the address(es) you listed on our registration page. Notice shall be deemed received two days following tender to such courier and three days following posting by mail.
+
+16. Dispute Resolution. These Terms and Conditions shall be governed by and construed in accordance with the laws of the State of Florida, without regard to any applicable conflicts or choice of law provisions. You hereby agree to waive any right you may have to participate in any class, group, or representative action or proceeding, and further hereby agree to waive any right you may have to a trial by jury. In the Company's discretion, the parties hereto irrevocably consent to the exclusive jurisdiction and venue of the federal and state courts of competent jurisdiction located in Broward County, Florida, and the parties hereby waive any objection that venue in such courts is inconvenient, Neither the United Nations Convention on Contracts for the International Sale of Goods ("CISG") nor the Uniform Computer Information Transactions Act ("UCITA") shall apply. In any action at law or in equity or arbitration to enforce or interpret any provision of these Terms and Conditions, the prevailing party shall be entitled to collect from the non-prevailing party, in addition to any damages and injunctive relief, whether at law or in equity, all reasonable costs, fees, and expenses, including, without limitation, attorney fees, costs, and expenses, expert witness fees, deposition transcript fees, postage, long-distance telephone charges, and travel costs.
+
+17. Complete Agreement. These Terms and Conditions contains the entire agreement of the parties and supersedes any and all other agreements, whether oral or in writing, between the parties concerning the subject matter hereof. Any modification of these Terms and Conditions shall be effective only if in a writing signed by the parties.
+
+18. Severability. If any provision of these Terms and Conditions is held by a court or tribunal of competent jurisdiction to be invalid, void, or unenforceable, the remaining provisions shall nevertheless continue in full force and effect without being impaired or invalidated in any way.
+
+19. Assignment. You shall not assign or sublicense any part of these Terms and Conditions, in whole or in part, without the prior written consent of the Company.
+
+10DLC Messaging Disclaimer
+
+By providing your phone number and opting in to receive messages from us, you agree to receive text messages sent via 10DLC (10-digit long code) for transactional, informational, or promotional purposes. Message and data rates may apply.
+
+To opt out of receiving messages, reply STOP at any time. For assistance, reply HELP or contact us.
+
+We are committed to complying with all industry regulations, including the CTIA and TCPA guidelines, ensuring that your information is handled securely and responsibly.`;

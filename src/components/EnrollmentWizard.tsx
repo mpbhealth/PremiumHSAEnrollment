@@ -406,6 +406,9 @@ export default function EnrollmentWizard({ benefitId, onBenefitIdChange, agentId
       newErrors.primaryMemberConditionsPast36Mo = 'This field is required';
     }
     if (!answers.medicalCostSharingAuth) newErrors.medicalCostSharingAuth = 'You must acknowledge and agree to the authorization';
+    if (!answers.termsAndConditionsAccept) {
+      newErrors.termsAndConditionsAccept = 'You must read and accept the Terms and Conditions';
+    }
 
     if (!answers.signatureData && !answers.typedSignature.trim()) {
       newErrors.signatureData = 'Please provide a drawn signature or typed name';
