@@ -212,9 +212,9 @@ export default function Step2Questionnaire({
 
         <div className="space-y-8">
           <div className="space-y-4">
-            <p className="font-semibold text-gray-900">Understanding Sedera Principles of Membership</p>
+            <p className="font-semibold text-gray-900">Understanding Premium Care Principles of Membership</p>
             <p className="text-sm text-gray-700 leading-relaxed">
-              I/We commit to living according to the Sedera Member Principles, including:
+              I/we commit to living according to the Sedera (Sharing Organization) Membership Principles, including:
             </p>
             <ul className="list-disc list-inside space-y-2 text-sm text-gray-700">
               <li>Acting with honesty, integrity, and ethical behavior.</li>
