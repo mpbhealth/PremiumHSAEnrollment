@@ -18,6 +18,7 @@ interface Step1PersonalInfoProps {
   onBenefitIdChange: (benefitId: string) => void;
   onPromoCodeChange: (code: string) => void;
   onAppliedPromoChange: (promo: AppliedPromo | null) => void;
+  onRemovePromo: () => void;
 }
 
 export default function Step1PersonalInfo({
@@ -34,6 +35,7 @@ export default function Step1PersonalInfo({
   onBenefitIdChange,
   onPromoCodeChange,
   onAppliedPromoChange,
+  onRemovePromo,
 }: Step1PersonalInfoProps) {
   const handleDOBChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatDOB(e.target.value, formData.dob);
@@ -190,6 +192,7 @@ export default function Step1PersonalInfo({
         appliedPromo={formData.appliedPromo}
         onPromoCodeChange={onPromoCodeChange}
         onAppliedPromoChange={onAppliedPromoChange}
+        onRemovePromo={onRemovePromo}
       />
 
       <div className="pt-6">

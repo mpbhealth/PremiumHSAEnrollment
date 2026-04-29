@@ -202,6 +202,10 @@ export function useEnrollmentStorage(benefitId: string | null, agentId: string =
     setFormData(data);
   }, []);
 
+  const patchFormData = useCallback((partial: Partial<FormData>) => {
+    setFormData((prev) => ({ ...prev, ...partial }));
+  }, []);
+
   const saveStep = useCallback((step: number) => {
     setCurrentStep(step);
   }, []);
@@ -219,6 +223,7 @@ export function useEnrollmentStorage(benefitId: string | null, agentId: string =
     formData,
     currentStep,
     saveFormData,
+    patchFormData,
     saveStep,
     clearStorage,
     clearFormDataOnly,

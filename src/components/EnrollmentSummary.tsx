@@ -20,6 +20,7 @@ interface EnrollmentSummaryProps {
   appliedPromo: AppliedPromo | null;
   onPromoCodeChange: (code: string) => void;
   onAppliedPromoChange: (promo: AppliedPromo | null) => void;
+  onRemovePromo: () => void;
 }
 
 const planOptions: Record<string, { value: string; label: string; memberOnlyPrice?: number; plusOnePrice?: number; childrenPrice?: number }[]> = {
@@ -44,6 +45,7 @@ export default function EnrollmentSummary({
   appliedPromo,
   onPromoCodeChange,
   onAppliedPromoChange,
+  onRemovePromo,
 }: EnrollmentSummaryProps) {
   const [isValidatingPromo, setIsValidatingPromo] = useState(false);
   const [promoError, setPromoError] = useState<string>('');
@@ -73,8 +75,7 @@ export default function EnrollmentSummary({
   };
 
   const handleRemovePromo = () => {
-    onPromoCodeChange('');
-    onAppliedPromoChange(null);
+    onRemovePromo();
     setPromoError('');
   };
 

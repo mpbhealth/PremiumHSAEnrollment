@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useEnrollmentStorage, Dependent, PaymentInfo, QuestionnaireAnswers } from '../hooks/useEnrollmentStorage';
+import { useEnrollmentStorage, Dependent, PaymentInfo, QuestionnaireAnswers, AppliedPromo } from '../hooks/useEnrollmentStorage';
 import { getSecureHsaPricingOptions, calculateAgeFromDOB } from '../utils/pricingLogic';
 import { generateEnrollmentPDF } from '../utils/generateEnrollmentPDF';
 import { encryptSensitiveFields } from '../utils/payloadEncryption';
@@ -25,7 +25,8 @@ interface EnrollmentWizardProps {
 }
 
 export default function EnrollmentWizard({ benefitId, onBenefitIdChange, agentId }: EnrollmentWizardProps) {
-  const { formData, currentStep, saveFormData, saveStep, clearStorage, clearFormDataOnly } = useEnrollmentStorage(benefitId, agentId);
+  const { formData, currentStep, saveFormData, patchFormData, saveStep, clearStorage, clearFormDataOnly } =
+    useEnrollmentStorage(benefitId, agentId);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<ApiResponse | null>(null);
@@ -612,11 +613,15 @@ export default function EnrollmentWizard({ benefitId, onBenefitIdChange, agentId
   };
 
   const handlePromoCodeChange = (code: string) => {
-    saveFormData({ ...formData, promoCode: code });
+    patchFormData({ promoCode: code });
   };
 
-  const handleAppliedPromoChange = (promo: any) => {
-    saveFormData({ ...formData, appliedPromo: promo });
+  const handleAppliedPromoChange = (promo: AppliedPromo | null) => {
+    patchFormData({ appliedPromo: promo });
+  };
+
+  const handleRemovePromo = () => {
+    patchFormData({ promoCode: '', appliedPromo: null });
   };
 
 
@@ -674,7 +679,9 @@ export default function EnrollmentWizard({ benefitId, onBenefitIdChange, agentId
         })),
         payment: formData.payment,
         pdid: formData.pdid,
-        promoCode: formData.promoCode,
+        promoCode: formData.appliedPromo
+          ? (formData.promoCode.trim() || formData.appliedPromo.code)
+          : '',
         appliedPromo: formData.appliedPromo,
         referral: (formData.questionnaireAnswers.referral ?? '').trim(),
       };
@@ -1035,6 +1042,7 @@ export default function EnrollmentWizard({ benefitId, onBenefitIdChange, agentId
               onBenefitIdChange={onBenefitIdChange}
               onPromoCodeChange={handlePromoCodeChange}
               onAppliedPromoChange={handleAppliedPromoChange}
+              onRemovePromo={handleRemovePromo}
             />
           )}
 
