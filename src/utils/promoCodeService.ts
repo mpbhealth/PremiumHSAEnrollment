@@ -1,14 +1,53 @@
 import { supabase } from '../lib/supabaseClient';
 import { AppliedPromo } from '../hooks/useEnrollmentStorage';
 
+const rawDefault = import.meta.env.VITE_DEFAULT_PROMO_PDID;
+const parsedDefault =
+  rawDefault != null && String(rawDefault).trim() !== ''
+    ? Number(rawDefault)
+    : NaN;
+export const DEFAULT_PROMO_PDID =
+  Number.isFinite(parsedDefault) && parsedDefault > 0 ? parsedDefault : 44036;
+
 export interface PromoCodeValidationResult {
   success: boolean;
   promo?: AppliedPromo;
   error?: string;
 }
 
+export function escapePromoCodeForILike(trimmed: string): string {
+  return trimmed
+    .replace(/\\/g, '\\\\')
+    .replace(/%/g, '\\%')
+    .replace(/_/g, '\\_');
+}
+
+function normalizeProductToken(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+export function effectivePdid(pdid: number | null | undefined): number {
+  if (typeof pdid === 'number' && pdid > 0) {
+    return pdid;
+  }
+  return DEFAULT_PROMO_PDID;
+}
+
+export function promoProductMatchesEnrollment(
+  product: string | null | undefined,
+  effectivePdidValue: number
+): boolean {
+  const p = product == null ? '' : String(product);
+  const n = normalizeProductToken(p);
+  if (n === '' || n === '*' || n === 'all' || n === 'any') {
+    return true;
+  }
+  return normalizeProductToken(String(effectivePdidValue)) === n;
+}
+
 export async function validatePromoCode(
-  code: string
+  code: string,
+  pdid?: number | null
 ): Promise<PromoCodeValidationResult> {
   if (!code || code.trim() === '') {
     return {
@@ -16,8 +55,6 @@ export async function validatePromoCode(
       error: 'Please enter a promo code',
     };
   }
-
-  const normalizedCode = code.trim().toUpperCase();
 
   if (!supabase) {
     return {
@@ -27,13 +64,17 @@ export async function validatePromoCode(
     };
   }
 
+  const trimmed = code.trim();
+  const pattern = escapePromoCodeForILike(trimmed);
+  const eff = effectivePdid(pdid);
+
   try {
     const { data, error } = await supabase
       .from('promocodes')
       .select('code, product, discount_amount')
-      .eq('code', normalizedCode)
+      .ilike('code', pattern)
       .eq('active', true)
-      .maybeSingle();
+      .limit(1);
 
     if (error) {
       console.error('Error validating promo code:', error);
@@ -43,7 +84,15 @@ export async function validatePromoCode(
       };
     }
 
-    if (!data) {
+    const row = data?.[0];
+    if (!row) {
+      return {
+        success: false,
+        error: 'Invalid promo code',
+      };
+    }
+
+    if (!promoProductMatchesEnrollment(row.product, eff)) {
       return {
         success: false,
         error: 'Invalid promo code',
@@ -53,13 +102,13 @@ export async function validatePromoCode(
     return {
       success: true,
       promo: {
-        code: data.code,
-        product: data.product,
-        discountAmount: parseFloat(data.discount_amount),
+        code: row.code,
+        product: row.product,
+        discountAmount: parseFloat(row.discount_amount),
       },
     };
-  } catch (error) {
-    console.error('Error validating promo code:', error);
+  } catch (err) {
+    console.error('Error validating promo code:', err);
     return {
       success: false,
       error: 'Network error. Please check your connection and try again.',

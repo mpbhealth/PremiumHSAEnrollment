@@ -181,6 +181,7 @@ export default function Step1PersonalInfo({
         onChangePlan={onChangePlan}
         onRemoveProduct={onRemoveProduct}
         benefitId={formData.benefitId}
+        pdid={formData.pdid}
         memberDOB={formData.dob}
         smoker={formData.smoker}
         errors={errors}

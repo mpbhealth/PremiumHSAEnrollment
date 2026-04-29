@@ -11,6 +11,43 @@ const corsHeaders = {
 /** Monthly tobacco fee in API payload (matches `TOBACCO_USE_MONTHLY_FEE` in `src/utils/pricingLogic.ts`). */
 const TOBACCO_USE_MONTHLY_FEE = "75.00";
 
+const DEFAULT_PROMO_PDID = (() => {
+  const v = Deno.env.get("DEFAULT_PROMO_PDID");
+  if (v == null || v.trim() === "") return 44036;
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? n : 44036;
+})();
+
+function escapePromoCodeForILike(trimmed: string): string {
+  return trimmed
+    .replace(/\\/g, "\\\\")
+    .replace(/%/g, "\\%")
+    .replace(/_/g, "\\_");
+}
+
+function normalizePromoProductToken(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function effectivePdidFromRequest(pdid: unknown): number {
+  if (typeof pdid === "number" && pdid > 0) return pdid;
+  if (typeof pdid === "string") {
+    const n = parseInt(pdid.trim(), 10);
+    if (Number.isFinite(n) && n > 0) return n;
+  }
+  return DEFAULT_PROMO_PDID;
+}
+
+function promoProductMatchesEnrollment(
+  product: string | null | undefined,
+  effectivePdidValue: number,
+): boolean {
+  const p = product == null ? "" : String(product);
+  const n = normalizePromoProductToken(p);
+  if (n === "" || n === "*" || n === "all" || n === "any") return true;
+  return normalizePromoProductToken(String(effectivePdidValue)) === n;
+}
+
 interface EncryptedBlock {
   encryptedData: string;
   encryptedKey: string;
@@ -601,25 +638,33 @@ Deno.serve(async (req: Request) => {
     let enrollmentFeeAmount = "100.00";
 
     if (requestData.promoCode && requestData.promoCode.trim() !== '') {
-      const normalizedPromoCode = requestData.promoCode.trim().toUpperCase();
+      const trimmedPromo = requestData.promoCode.trim();
+      const pattern = escapePromoCodeForILike(trimmedPromo);
+      const effPdid = effectivePdidFromRequest(requestData.pdid);
 
       try {
-        const { data: promoData, error: promoError } = await supabase
+        const { data: promoRows, error: promoError } = await supabase
           .from('promocodes')
-          .select('discount_amount')
-          .eq('code', normalizedPromoCode)
+          .select('code, product, discount_amount')
+          .ilike('code', pattern)
           .eq('active', true)
-          .maybeSingle();
+          .limit(1);
 
-        if (!promoError && promoData) {
-          const discountAmount = parseFloat(promoData.discount_amount);
+        const promoData = promoRows?.[0];
+
+        if (
+          !promoError &&
+          promoData &&
+          promoProductMatchesEnrollment(promoData.product, effPdid)
+        ) {
+          const discountAmount = parseFloat(String(promoData.discount_amount));
 
           if (!isNaN(discountAmount) && discountAmount >= 0) {
-            const calculatedFee = Math.max(0, 100.00 - discountAmount);
+            const calculatedFee = Math.max(0, 100.0 - discountAmount);
             enrollmentFeeAmount = calculatedFee.toFixed(2);
           }
         }
-      } catch (error) {
+      } catch {
         // Promo code validation error handled silently
       }
     }
