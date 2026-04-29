@@ -1,6 +1,8 @@
-# Promocode system — export guide for similar projects
+# Promocode system — porting guide for similar projects
 
-This document describes how enrollment promocodes work in this codebase pattern (Supabase + PostgREST + optional Edge API validation). **This repository (Premium HSA Enrollment) uses default promo PDID `44036`**, wired via `VITE_DEFAULT_PROMO_PDID` on the client and `DEFAULT_PROMO_PDID` on the Edge function (each falls back to `44036` when unset). When porting to another project, replace that value with your product identifier — it is **not** fixed globally.
+This document describes a **Supabase + PostgREST** promocode pattern (browser validation + optional Edge/API re-validation on submit). You can **copy this file into another repository** and follow the sections below; only **§2 (config)** and **§3 (migrations)** need values/paths specific to your app.
+
+**Design choice:** The `code` column is **not** `UNIQUE`. One product scope (`product`) can have **many different promo strings**, and you may also have **the same string** on more than one row when `product` (or discount) differs. Validation **always** loads **all** active rows that match the typed code, then picks the row whose **`product`** matches the enrollment (see §4). Using `limit(1)` **before** that filter is incorrect when `code` is not unique.
 
 ---
 
@@ -8,76 +10,133 @@ This document describes how enrollment promocodes work in this codebase pattern 
 
 | Piece | Role |
 |--------|------|
-| **`promocodes` table** | Stores one row per code; each row has a **product scope** string and a **fixed dollar discount**. |
-| **Client validation** | User enters a code; app loads the active row, checks **product** against the enrollment’s PDID, then applies **discount** to the initial payment. |
-| **Server re-validation** | Enrollment submission repeats the same lookup + product check so discounts cannot be forged client-side. |
+| **`promocodes` table** | Each **row** is one promo rule: a **`code`** string, a **`product`** scope, an **`discount_amount`**, and **`active`**. |
+| **Client validation** | Normalize input → query by `code` → filter rows by **`product`** vs enrollment ID → apply **discount** to the initial payment. |
+| **Server re-validation** | On enrollment submit, repeat the **same** query + **same** product matching. Do **not** trust client-sent discount amounts. |
 | **Pricing helper** | `initial_payment_after_discount = max(0, initial_payment - discount_amount)`. |
 
-This repo scopes **`promocodes.product`** to a **single enrollment identifier: PDID** (numeric product ID). Other projects might store PDID under another name; the **mechanism** is the same: **match DB `product` column to whatever ID represents “this enrollment product”.**
+Map **`promocodes.product`** to whatever single ID represents “this enrollment product” in your app (this reference uses **PDID** as a numeric string, e.g. `"44036"`). The mechanism is the same if you rename the concept.
 
 ---
 
 ## 2. Config you must set per project
 
-Define **one default PDID** used when the form does not yet have a positive PDID:
+Define **one default product ID** used when the enrollment payload has no positive ID yet:
 
 ```text
-DEFAULT_PROMO_PDID = <your number>   // e.g. 44036 in Premium HSA Enrollment — change per deployment/product line
+DEFAULT_PROMO_PDID = <your number>
 ```
 
-**Where to wire it (conceptually):**
+**Wire it in two places (keep them equal):**
 
-- **Frontend** — `VITE_DEFAULT_PROMO_PDID` in [`src/utils/promoCodeService.ts`](../src/utils/promoCodeService.ts) (fallback `44036` here).
-- **Edge function / API** — `DEFAULT_PROMO_PDID` in [`supabase/functions/enrollment-api-premiumhsa/index.ts`](../supabase/functions/enrollment-api-premiumhsa/index.ts) (fallback `44036` here). Keep this **in sync** with the client.
+- **Frontend** — e.g. `VITE_DEFAULT_PROMO_PDID` (or your bundler’s `import.meta.env` / `process.env` equivalent), read in your promo service with a **numeric fallback** if unset.
+- **Edge / API** — e.g. `DEFAULT_PROMO_PDID` or `DEFAULT_ENROLLMENT_PDID` in server secrets, same numeric fallback.
 
-Never assume `44036` in a **different** codebase unless that **is** your product ID.
+Do **not** copy another project’s numeric literal unless it is **your** product ID.
 
 ---
 
-## 3. Database: `promocodes`
+## 3. Database: `promocodes` and **`code` is not UNIQUE**
 
-Reference migration shape:
+### 3.1 Column reference
 
 | Column | Notes |
 |--------|--------|
-| `id` | UUID PK |
-| `code` | **UNIQUE** — each promo string appears once (different codes can share the same `product`). |
-| `product` | **Not unique.** Stores the product scope: typically **`"<PDID>"`** as text (e.g. `"44036"` for Premium HSA). See wildcards below. |
+| `id` | UUID primary key (recommended). |
+| `code` | `text NOT NULL`. **No `UNIQUE` constraint** (see below). |
+| `product` | `text NOT NULL`. Product scope: usually **`"<yourProductId>"`**, or wildcards (§4). |
 | `discount_amount` | Non-negative numeric; dollars subtracted from initial payment. |
-| `active` | Boolean; only `active = true` rows participate in validation. |
+| `active` | Boolean; only `active = true` rows should be returned to anonymous clients (RLS). |
+| timestamps | Optional `created_at` / `updated_at`. |
 
-**RLS:** Policy that allows **anonymous `SELECT`** for rows with `active = true` is typical so the browser can validate without a logged-in user. Inserts/updates remain admin-only.
+**RLS:** Typical pattern: **`SELECT`** allowed to **anonymous** users only for rows with **`active = true`** (validation without login). `INSERT` / `UPDATE` / `DELETE` — **authenticated** (or service role) only.
 
-**Indexes:** Unique on `code`; optional index on `active`.
+**Indexes:** Non-unique index on **`code`** for lookups, e.g. `CREATE INDEX idx_promocodes_code ON promocodes (code);`. Optional index on **`active`**.
+
+### 3.2 Why remove (or avoid) `UNIQUE` on `code`
+
+- **Multiple codes per product:** Many rows can share the same **`product`** with **different** `code` values (e.g. partner campaigns).
+- **Same `code`, different `product`:** If you ever need the same display string scoped to different lines, duplicate `code` rows are allowed; the app **disambiguates** with **`product`** vs **`effective_pdid`**.
+- **Gotcha:** If you query with **`limit(1)`** before product filtering, PostgREST may return the **wrong** row and the UI shows “invalid code” even when a valid row exists.
+
+### 3.3 Bootstrap migration (greenfield)
+
+Create the table **without** a unique constraint on `code`:
+
+```sql
+CREATE TABLE IF NOT EXISTS promocodes (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  code text NOT NULL,
+  product text NOT NULL,
+  discount_amount numeric NOT NULL CHECK (discount_amount >= 0),
+  active boolean DEFAULT true NOT NULL,
+  created_at timestamptz DEFAULT now() NOT NULL,
+  updated_at timestamptz DEFAULT now() NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_promocodes_code ON promocodes (code);
+CREATE INDEX IF NOT EXISTS idx_promocodes_active ON promocodes (active);
+
+ALTER TABLE promocodes ENABLE ROW LEVEL SECURITY;
+
+-- Example policies (adjust roles/names to your project)
+CREATE POLICY "Anyone can read active promocodes"
+  ON promocodes FOR SELECT
+  USING (active = true);
+
+CREATE POLICY "Authenticated users can insert promocodes"
+  ON promocodes FOR INSERT TO authenticated
+  WITH CHECK (true);
+
+CREATE POLICY "Authenticated users can update promocodes"
+  ON promocodes FOR UPDATE TO authenticated
+  USING (true) WITH CHECK (true);
+
+CREATE POLICY "Authenticated users can delete promocodes"
+  ON promocodes FOR DELETE TO authenticated
+  USING (true);
+```
+
+### 3.4 Migration if you already have `UNIQUE` on `code`
+
+If an older migration added **`UNIQUE (code)`** or **`UNIQUE INDEX`** on `code`, **drop** it and replace with a **non-unique** index:
+
+```sql
+ALTER TABLE promocodes DROP CONSTRAINT IF EXISTS promocodes_code_key;
+
+DROP INDEX IF EXISTS idx_promocodes_code;
+
+CREATE INDEX IF NOT EXISTS idx_promocodes_code ON promocodes (code);
+```
+
+Constraint names may differ (`\d promocodes` in `psql` to list). Adjust `DROP CONSTRAINT` to match your DB.
 
 ---
 
 ## 4. Product column semantics (`product`)
 
-The enrollment **eligible PDID** is computed as:
+**Eligible product ID** for the current enrollment:
 
 ```text
-effective_pdid = (user_pdid is number && user_pdid > 0) ? user_pdid : DEFAULT_PROMO_PDID
+effective_pdid = (user_id is number && user_id > 0) ? user_id : DEFAULT_PROMO_PDID
 ```
 
-A promocode row **matches** the enrollment when:
+(Replace `user_id` with your real field name: `pdid`, `productId`, etc.)
 
-1. **`product` is empty**, or equals (case-insensitive) **`*`**, **`ALL`**, or **`ANY`** → code applies to any enrollment (wildcard rows).
-2. Otherwise **`product`** (normalized) must equal **`String(effective_pdid)`** (normalized).
+A row **matches** the enrollment when:
 
-**Multiple codes per product:** Many rows may use the same **`product`** value (same PDID) with **different** `code` values — that is the normal case (e.g. `100MPOWER` and `livewell` both scoped to `44036`).
+1. **`product`** is empty, or equals (case-insensitive) **`*`**, **`ALL`**, or **`ANY`** → wildcard (any enrollment).
+2. Otherwise **`product`** (trim + case-fold for comparison) equals **`String(effective_pdid)`** the same way.
 
-**Non-unique `code` (optional migration):** This repo may drop the unique constraint on `code` (see `20260415120000_allow_duplicate_promocodes_code.sql`) so the **same string** could appear on more than one row (e.g. different `product` values). Validation must **load all active rows** matching the typed code, then **pick the first row whose `product` matches** `effective_pdid` (wildcards count as match). Do **not** use `limit(1)` **before** that filter, or a random row can fail product match and look like an “invalid code.”
-
-**User input:** Strip outer parentheses so `(LIVEWELL)` matches a row stored as `livewell` / `LIVEWELL` (`normalizePromoCodeInput` in `promoCodeService.ts`).
+**User input:** Trim; strip redundant outer parentheses, e.g. `(LIVEWELL)` → `LIVEWELL`, before lookup.
 
 ---
 
-## 5. Code lookup: case-insensitive + literal string
+## 5. Code lookup: case-insensitive literal + escape `ilike` metacharacters
 
-PostgREST/Supabase: use **`ilike`** on `code` with **normalized** input (trim; strip wrapping `(...)` if present), not `eq` with forced uppercase, so DB casing can differ from user input.
+Use **`ilike`** on **`code`** with normalized input (not `eq` + forced uppercase) so database casing can differ from user input.
 
-**Critical:** `ilike` treats `%` and `_` as wildcards. **Escape** backslash, percent, and underscore in the user’s input before sending:
+**Critical:** In SQL, `ilike` treats **`%`** and **`_`** as wildcards. Escape `\`, `%`, and `_` in the user string before sending the pattern:
 
 ```typescript
 function escapePromoCodeForILike(trimmed: string): string {
@@ -88,28 +147,26 @@ function escapePromoCodeForILike(trimmed: string): string {
 }
 ```
 
-**Query pattern:**
+**Query pattern (Supabase client):**
 
-- Normalize: `trim` + optional outer parentheses strip (`normalizePromoCodeInput`).
-- `from('promocodes').select('code, product, discount_amount')`
-- `.ilike('code', escapePromoCodeForILike(normalizedInput))`
-- `.eq('active', true)`
-- **Do not** `limit(1)` before product filtering if `code` may not be unique in the database.
-- From the returned rows, **choose the first** where `product` matches `effective_pdid` (Section 4).
+1. `normalizedInput = normalizePromoCodeInput(userInput)` (trim + strip outer `(...)` ).
+2. `pattern = escapePromoCodeForILike(normalizedInput)`.
+3. `from('promocodes').select('code, product, discount_amount').ilike('code', pattern).eq('active', true)` — **no** `limit(1)` here if `code` is not unique.
+4. From the array of rows, **`find`** the first where `product` matches `effective_pdid` per §4.
 
-If no row matches the code, or no returned row matches **`product`** → **invalid code**.
+If no rows, or none match **`product`** → **invalid code**.
 
 ---
 
 ## 6. Client-side validation flow
 
-1. Normalize input (trim, strip outer parentheses).
-2. Run the query above (all matching active rows).
-3. If no rows match code → error.
-4. Pick the **first row** whose `product` matches `effective_pdid` (Section 4); if none → error.
-5. On success, persist **`AppliedPromo`**: `{ code, product, discountAmount }` from that row.
+1. Normalize input (trim, outer parentheses).
+2. Query all matching **active** rows (§5).
+3. If zero rows → error.
+4. Pick first row matching **`product`** vs **`effective_pdid`**; if none → error.
+5. Persist **`{ code, product, discountAmount }`** from that row for display and submit payload tagging (your shape may vary).
 
-**UI:** Do not force uppercase on every keystroke if you rely on `ilike`; trimming / parenthesis strip is enough.
+**UI:** Do not force uppercase on every keystroke if you rely on `ilike`.
 
 ---
 
@@ -122,18 +179,18 @@ function applyPromoDiscount(initialPayment: number, appliedPromo: AppliedPromo |
 }
 ```
 
-Use the same helper anywhere the enrollment fee is shown (summary, payment step, PDF, etc.).
+Use everywhere the fee is shown (summary, payment step, PDFs).
 
 ---
 
-## 8. Server-side (Edge function / API) parity
+## 8. Server-side parity
 
-When the client submits enrollment:
+On submit, if `promoCode` is non-empty:
 
-1. If `promoCode` is non-empty, repeat the **same** `promocodes` query + **same** `escapePromoCodeForILike` + **same** `effective_pdid` / product match (using **the same `DEFAULT_PROMO_PDID`** as the client).
-2. If the match succeeds, recompute enrollment fee: **`max(0, base_fee - discount_amount)`** — do **not** trust client-sent dollar amounts for the promo discount.
+1. Repeat the **same** normalization, **same** `escapePromoCodeForILike`, **same** query, **same** row selection by **`product`** (same **`DEFAULT_PROMO_PDID`** as the client).
+2. Recompute fee: **`max(0, base_fee - discount_amount)`** from the **database** row — not from the client discount field.
 
-Duplicate `escapePromoCodeForILike` in the Edge bundle if needed (no shared package), but keep logic **byte-identical**.
+Duplicate small helpers in the server bundle if you have no shared package; keep behavior **identical**.
 
 ---
 
@@ -141,57 +198,53 @@ Duplicate `escapePromoCodeForILike` in the Edge bundle if needed (no shared pack
 
 | Goal | Set `product` to |
 |------|---------------------|
-| Code valid only for PDID **12345** | `12345` (string) |
-| Code valid for **any** product line | `*` or `ALL` or `ANY`, or leave empty per your wildcard implementation |
+| Code only for product ID **12345** | `12345` (text) |
+| Code for **any** product line | `*` or `ALL` or `ANY`, or empty string if your matcher treats blank as wildcard |
 
-Use **distinct `code` values** when possible. If your migration allows duplicate `code` strings, ensure validation picks the row by **product** match (Section 4).
+Prefer **distinct `code` strings** for clarity. If duplicates exist, validation **must** use **`product`** (§5–6).
 
 ---
 
 ## 10. Checklist when copying to another repo
 
-- [ ] Create `promocodes` table + RLS + indexes (or equivalent).
-- [ ] Set **`DEFAULT_PROMO_PDID`** (and document it for admins creating rows).
-- [ ] Implement **`escapePromoCodeForILike`** + **`ilike`** lookup + **product match over all matching rows** (no premature `limit(1)` if `code` is not unique).
-- [ ] Implement **wildcard + PDID** matching for `product`.
-- [ ] Wire **`validatePromoCode`** (or equivalent) with **`pdid`** from enrollment state.
-- [ ] Implement **`applyPromoDiscount`** (or equivalent) with **`Math.max(0, …)`**.
-- [ ] Mirror promo validation + fee math on **submit** server-side.
-- [ ] Smoke-test: unknown code, inactive row, wrong PDID row, wildcard row, multiple codes same PDID.
+- [ ] `promocodes` table: **`code` not UNIQUE**; non-unique index on `code`; RLS for active-only anonymous read.
+- [ ] `DEFAULT_PROMO_PDID` (or equivalent) on **client + server**, documented for admins.
+- [ ] `normalizePromoCodeInput` + `escapePromoCodeForILike` + **`ilike`** + fetch **all** matching active rows.
+- [ ] **`product`** / wildcard matching vs **`effective_pdid`**; **no** premature `limit(1)`.
+- [ ] `applyPromoDiscount` with **`Math.max(0, …)`**.
+- [ ] Server recomputes discount on submit.
+- [ ] Smoke-test: unknown code, inactive row, wrong `product` row, wildcard row, two rows same `code` different `product`, mixed case input.
 
 ---
 
 ## 11. Prompt snippet for AI-assisted ports
 
-Paste something like this when asking an AI to implement the same system in another codebase:
-
 ```text
-Implement promocode validation per docs/promocode.md pattern:
-- Supabase table promocodes (code unique, product text, discount_amount, active).
-- Lookup: trim input, escape % _ \ for ilike, filter active=true, limit 1.
-- Product match: wildcards empty/* /ALL/ANY = any; else product must equal String(effective_pdid).
-- effective_pdid = user pdid if > 0 else DEFAULT_PROMO_PDID.
-- Use this DEFAULT_PROMO_PDID for this project: <PUT YOUR NUMBER HERE>
-- Client applies max(0, initial - discount); server recomputes on submit.
-- Do not hardcode 44036 unless that is our PDID.
+Implement promocode validation per attached promocode.md:
+- Table promocodes: code text NOT NULL (no UNIQUE on code), product text NOT NULL, discount_amount, active; index on code (non-unique); RLS SELECT for anonymous on active=true only.
+- Optional migration: drop promocodes_code_key / unique index on code if upgrading an old schema.
+- Client + server: normalizePromoCodeInput (trim, strip outer parens), escapePromoCodeForILike, ilike on code, eq active=true, NO limit(1) before product filter; pick first row where product matches effective_pdid (wildcards: empty, *, ALL, ANY).
+- effective_pdid = user pdid if > 0 else DEFAULT_PROMO_PDID from env (document the env var names you use).
+- Discount: max(0, initial - discount_amount); server recomputes on submit; do not trust client discount dollars.
 ```
 
-(Replace the last line with your real default PDID or “read from env `VITE_DEFAULT_PROMO_PDID`”.)
-
 ---
 
-## 12. Reference locations in this repository
+## 12. Reference implementation (Premium HSA Enrollment)
 
-| Area | Path |
-|------|------|
-| This guide | `docs/promocode.md` |
+This repository is one working example. Paths differ in other apps; treat these as **illustration only**:
+
+| Area | Path (this repo) |
+|------|-------------------|
+| Guide | `docs/promocode.md` |
 | Client service | `src/utils/promoCodeService.ts` |
-| UI apply | `src/components/EnrollmentSummary.tsx` |
-| Edge validation | `supabase/functions/enrollment-api-premiumhsa/index.ts` |
-| Migration | `supabase/migrations/20260123163522_create_promocodes_table.sql` |
+| UI | `src/components/EnrollmentSummary.tsx` |
+| Edge function | `supabase/functions/enrollment-api-premiumhsa/index.ts` |
+| Create table migration | `supabase/migrations/20260123163522_create_promocodes_table.sql` |
+| Drop UNIQUE on `code` | `supabase/migrations/20260415120000_allow_duplicate_promocodes_code.sql` |
 
-Promo **default PDID** for this app is **`44036`** (see `DEFAULT_PROMO_PDID` / `VITE_DEFAULT_PROMO_PDID`). Other Care+/enrollment codebases may use different IDs; keep **client and Edge** defaults aligned per deployment.
+Default promo product ID here: **`44036`** (`VITE_DEFAULT_PROMO_PDID` / `DEFAULT_PROMO_PDID`). **Replace** in your fork.
 
 ---
 
-*Last aligned: Premium HSA — PDID-only product matching, ilike + escape, server parity.*
+*Portable guide: non-unique `code`, multi-row lookup + product disambiguation, ilike + escape, server parity.*
