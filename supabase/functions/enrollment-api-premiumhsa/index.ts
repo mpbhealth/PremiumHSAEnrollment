@@ -25,6 +25,14 @@ function escapePromoCodeForILike(trimmed: string): string {
     .replace(/_/g, "\\_");
 }
 
+function normalizePromoCodeInput(raw: string): string {
+  let s = raw.trim();
+  while (s.length >= 2 && s.startsWith("(") && s.endsWith(")")) {
+    s = s.slice(1, -1).trim();
+  }
+  return s;
+}
+
 function normalizePromoProductToken(value: string): string {
   return value.trim().toLowerCase();
 }
@@ -638,34 +646,33 @@ Deno.serve(async (req: Request) => {
     let enrollmentFeeAmount = "100.00";
 
     if (requestData.promoCode && requestData.promoCode.trim() !== '') {
-      const trimmedPromo = requestData.promoCode.trim();
-      const pattern = escapePromoCodeForILike(trimmedPromo);
-      const effPdid = effectivePdidFromRequest(requestData.pdid);
+      const normalizedPromo = normalizePromoCodeInput(requestData.promoCode);
+      if (normalizedPromo !== '') {
+        const pattern = escapePromoCodeForILike(normalizedPromo);
+        const effPdid = effectivePdidFromRequest(requestData.pdid);
 
-      try {
-        const { data: promoRows, error: promoError } = await supabase
-          .from('promocodes')
-          .select('code, product, discount_amount')
-          .ilike('code', pattern)
-          .eq('active', true)
-          .limit(1);
+        try {
+          const { data: promoRows, error: promoError } = await supabase
+            .from('promocodes')
+            .select('code, product, discount_amount')
+            .ilike('code', pattern)
+            .eq('active', true);
 
-        const promoData = promoRows?.[0];
+          const promoData = (promoRows ?? []).find((r) =>
+            promoProductMatchesEnrollment(r.product, effPdid),
+          );
 
-        if (
-          !promoError &&
-          promoData &&
-          promoProductMatchesEnrollment(promoData.product, effPdid)
-        ) {
-          const discountAmount = parseFloat(String(promoData.discount_amount));
+          if (!promoError && promoData) {
+            const discountAmount = parseFloat(String(promoData.discount_amount));
 
-          if (!isNaN(discountAmount) && discountAmount >= 0) {
-            const calculatedFee = Math.max(0, 100.0 - discountAmount);
-            enrollmentFeeAmount = calculatedFee.toFixed(2);
+            if (!isNaN(discountAmount) && discountAmount >= 0) {
+              const calculatedFee = Math.max(0, 100.0 - discountAmount);
+              enrollmentFeeAmount = calculatedFee.toFixed(2);
+            }
           }
+        } catch {
+          // Promo code validation error handled silently
         }
-      } catch {
-        // Promo code validation error handled silently
       }
     }
 

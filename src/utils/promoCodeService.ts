@@ -22,6 +22,15 @@ export function escapePromoCodeForILike(trimmed: string): string {
     .replace(/_/g, '\\_');
 }
 
+/** Trim and remove one outer pair of parentheses, e.g. "(LIVEWELL)" → "LIVEWELL". */
+export function normalizePromoCodeInput(raw: string): string {
+  let s = raw.trim();
+  while (s.length >= 2 && s.startsWith('(') && s.endsWith(')')) {
+    s = s.slice(1, -1).trim();
+  }
+  return s;
+}
+
 function normalizeProductToken(value: string): string {
   return value.trim().toLowerCase();
 }
@@ -64,17 +73,23 @@ export async function validatePromoCode(
     };
   }
 
-  const trimmed = code.trim();
-  const pattern = escapePromoCodeForILike(trimmed);
+  const normalizedInput = normalizePromoCodeInput(code);
+  if (normalizedInput === '') {
+    return {
+      success: false,
+      error: 'Please enter a promo code',
+    };
+  }
+
+  const pattern = escapePromoCodeForILike(normalizedInput);
   const eff = effectivePdid(pdid);
 
   try {
-    const { data, error } = await supabase
+    const { data: rows, error } = await supabase
       .from('promocodes')
       .select('code, product, discount_amount')
       .ilike('code', pattern)
-      .eq('active', true)
-      .limit(1);
+      .eq('active', true);
 
     if (error) {
       console.error('Error validating promo code:', error);
@@ -84,15 +99,11 @@ export async function validatePromoCode(
       };
     }
 
-    const row = data?.[0];
-    if (!row) {
-      return {
-        success: false,
-        error: 'Invalid promo code',
-      };
-    }
+    const row = (rows ?? []).find((r) =>
+      promoProductMatchesEnrollment(r.product, eff),
+    );
 
-    if (!promoProductMatchesEnrollment(row.product, eff)) {
+    if (!row) {
       return {
         success: false,
         error: 'Invalid promo code',

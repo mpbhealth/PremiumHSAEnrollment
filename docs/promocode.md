@@ -65,13 +65,17 @@ A promocode row **matches** the enrollment when:
 1. **`product` is empty**, or equals (case-insensitive) **`*`**, **`ALL`**, or **`ANY`** → code applies to any enrollment (wildcard rows).
 2. Otherwise **`product`** (normalized) must equal **`String(effective_pdid)`** (normalized).
 
-**Multiple codes per product:** Many rows may use the same `product` value (same PDID). **`code` stays unique** across the table.
+**Multiple codes per product:** Many rows may use the same **`product`** value (same PDID) with **different** `code` values — that is the normal case (e.g. `100MPOWER` and `livewell` both scoped to `44036`).
+
+**Non-unique `code` (optional migration):** This repo may drop the unique constraint on `code` (see `20260415120000_allow_duplicate_promocodes_code.sql`) so the **same string** could appear on more than one row (e.g. different `product` values). Validation must **load all active rows** matching the typed code, then **pick the first row whose `product` matches** `effective_pdid` (wildcards count as match). Do **not** use `limit(1)` **before** that filter, or a random row can fail product match and look like an “invalid code.”
+
+**User input:** Strip outer parentheses so `(LIVEWELL)` matches a row stored as `livewell` / `LIVEWELL` (`normalizePromoCodeInput` in `promoCodeService.ts`).
 
 ---
 
 ## 5. Code lookup: case-insensitive + literal string
 
-PostgREST/Supabase: use **`ilike`** on `code` with the **trimmed user input**, not `eq` with forced uppercase, so DB casing can differ from user input.
+PostgREST/Supabase: use **`ilike`** on `code` with **normalized** input (trim; strip wrapping `(...)` if present), not `eq` with forced uppercase, so DB casing can differ from user input.
 
 **Critical:** `ilike` treats `%` and `_` as wildcards. **Escape** backslash, percent, and underscore in the user’s input before sending:
 
@@ -86,27 +90,26 @@ function escapePromoCodeForILike(trimmed: string): string {
 
 **Query pattern:**
 
+- Normalize: `trim` + optional outer parentheses strip (`normalizePromoCodeInput`).
 - `from('promocodes').select('code, product, discount_amount')`
-- `.ilike('code', escapePromoCodeForILike(trimmedUserInput))`
+- `.ilike('code', escapePromoCodeForILike(normalizedInput))`
 - `.eq('active', true)`
-- `.limit(1)`
+- **Do not** `limit(1)` before product filtering if `code` may not be unique in the database.
+- From the returned rows, **choose the first** where `product` matches `effective_pdid` (Section 4).
 
-Use **`limit(1)`** instead of **`maybeSingle()`** if your PostgREST stack misbehaves on zero-or-many rows.
-
-If no row → **invalid code**. If row exists → proceed to product match.
+If no row matches the code, or no returned row matches **`product`** → **invalid code**.
 
 ---
 
 ## 6. Client-side validation flow
 
-1. Trim user input.
-2. Run the query above.
-3. If no row → error.
-4. If `enrollmentCtx` is provided, build the **eligible PDID set** (this repo uses a single entry: `String(effective_pdid)` using **`DEFAULT_PROMO_PDID`** when `pdid` is missing or ≤ 0).
-5. Compare row `product` to eligible IDs using wildcard rules (Section 4).
-6. On success, persist **`AppliedPromo`**: `{ code, product, discountAmount }` from the row.
+1. Normalize input (trim, strip outer parentheses).
+2. Run the query above (all matching active rows).
+3. If no rows match code → error.
+4. Pick the **first row** whose `product` matches `effective_pdid` (Section 4); if none → error.
+5. On success, persist **`AppliedPromo`**: `{ code, product, discountAmount }` from that row.
 
-**UI:** Do not force uppercase on every keystroke if you rely on `ilike`; trimming is enough.
+**UI:** Do not force uppercase on every keystroke if you rely on `ilike`; trimming / parenthesis strip is enough.
 
 ---
 
@@ -141,7 +144,7 @@ Duplicate `escapePromoCodeForILike` in the Edge bundle if needed (no shared pack
 | Code valid only for PDID **12345** | `12345` (string) |
 | Code valid for **any** product line | `*` or `ALL` or `ANY`, or leave empty per your wildcard implementation |
 
-Always insert **distinct `code`** values per row.
+Use **distinct `code` values** when possible. If your migration allows duplicate `code` strings, ensure validation picks the row by **product** match (Section 4).
 
 ---
 
@@ -149,7 +152,7 @@ Always insert **distinct `code`** values per row.
 
 - [ ] Create `promocodes` table + RLS + indexes (or equivalent).
 - [ ] Set **`DEFAULT_PROMO_PDID`** (and document it for admins creating rows).
-- [ ] Implement **`escapePromoCodeForILike`** + **`ilike`** lookup + **`limit(1)`**.
+- [ ] Implement **`escapePromoCodeForILike`** + **`ilike`** lookup + **product match over all matching rows** (no premature `limit(1)` if `code` is not unique).
 - [ ] Implement **wildcard + PDID** matching for `product`.
 - [ ] Wire **`validatePromoCode`** (or equivalent) with **`pdid`** from enrollment state.
 - [ ] Implement **`applyPromoDiscount`** (or equivalent) with **`Math.max(0, …)`**.
