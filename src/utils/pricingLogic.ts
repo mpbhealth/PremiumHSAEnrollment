@@ -91,6 +91,26 @@ export function calculateAgeFromDOB(dob: string): number | null {
   return age;
 }
 
+/**
+ * Integer ages from primary and dependents where DOB parses; omit nulls.
+ * Dependents without DOB contribute nothing until entered.
+ * Someone 65+ includes their age in max → getAgeRange returns null → 18–64 message applies to household.
+ */
+function collectHouseholdAges(primaryDob: string, dependents: Dependent[]): number[] {
+  const ages: number[] = [];
+  const primaryAge = calculateAgeFromDOB(primaryDob);
+  if (primaryAge !== null) {
+    ages.push(primaryAge);
+  }
+  for (const dep of dependents) {
+    const a = calculateAgeFromDOB(dep.dob || '');
+    if (a !== null) {
+      ages.push(a);
+    }
+  }
+  return ages;
+}
+
 function getAgeRange(age: number): '18-29' | '30-64' | null {
   if (age >= 18 && age <= 29) return '18-29';
   if (age >= 30 && age <= 64) return '30-64';
@@ -107,10 +127,11 @@ export function getCoverageType(dependents: Dependent[]): 'Member Only' | 'Membe
   return 'Member + Family';
 }
 
+/** Premium HSA / secure pricing: age band uses the oldest parseable age in the household (primary + dependents). */
 export function getSecureHsaPricingOptions(memberDOB: string, dependents: Dependent[]): SecureHsaPricingResult {
-  const age = calculateAgeFromDOB(memberDOB);
+  const ages = collectHouseholdAges(memberDOB, dependents);
 
-  if (age === null) {
+  if (ages.length === 0) {
     return {
       options: [],
       isAvailable: false,
@@ -119,7 +140,8 @@ export function getSecureHsaPricingOptions(memberDOB: string, dependents: Depend
     };
   }
 
-  const ageRange = getAgeRange(age);
+  const pricingAge = Math.max(...ages);
+  const ageRange = getAgeRange(pricingAge);
 
   if (!ageRange) {
     return {
