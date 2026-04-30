@@ -2,6 +2,10 @@ import { Users, ChevronRight, Eye, EyeOff } from 'lucide-react';
 import { Dependent } from '../hooks/useEnrollmentStorage';
 import { formatPhoneNumber, formatSSN } from '../utils/formatters';
 import { getDependentEmailDuplicateError } from '../utils/dependentEmailValidation';
+import {
+  getDependentPhoneDuplicateError,
+  getDependentSsnDuplicateError,
+} from '../utils/dependentPhoneSsnDuplicateValidation';
 import { useState, useEffect } from 'react';
 
 interface DependentsAddressSectionProps {
@@ -13,6 +17,8 @@ interface DependentsAddressSectionProps {
     state: string;
     zipcode: string;
     email: string;
+    phone?: string;
+    ssn?: string;
   };
   errors?: Record<string, string>;
   onClearError?: (field: string) => void;
@@ -79,7 +85,6 @@ export default function DependentsAddressSection({
     // Also clear the external error if callback provided
     if (onClearError) {
       onClearError(`dependent_${selectedDependentIndex}_${field}`);
-      onClearError(field);
     }
   };
 
@@ -109,32 +114,92 @@ export default function DependentsAddressSection({
     });
   };
 
-  const validateDependent = (dependent: Dependent): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    if (!dependent.phone?.trim()) {
-      newErrors.phone = 'Phone number is required';
-    } else {
-      const phoneDigits = dependent.phone.replace(/\D/g, '');
-      if (phoneDigits.length !== 10) {
-        newErrors.phone = 'Phone number must be exactly 10 digits';
+  const handlePhoneBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (selectedDependentIndex === null) return;
+    const index = selectedDependentIndex;
+    const mainPhone = subscriberAddress?.phone ?? '';
+    const phoneValue = e.currentTarget.value;
+    const dependentsForCheck = dependents.map((d, i) =>
+      i === index ? { ...d, phone: phoneValue } : d
+    );
+    const duplicateMsg = getDependentPhoneDuplicateError(
+      phoneValue,
+      index,
+      dependentsForCheck,
+      mainPhone
+    );
+    setLocalErrors((prev) => {
+      const key = `dependent_${index}_phone`;
+      const next = { ...prev };
+      if (duplicateMsg) {
+        next[key] = duplicateMsg;
+      } else {
+        delete next[key];
       }
-    }
-
-    if (!dependent.ssn?.trim()) {
-      newErrors.ssn = 'Social Security number is required';
-    } else {
-      const ssnDigits = dependent.ssn.replace(/\D/g, '');
-      if (ssnDigits.length !== 9) {
-        newErrors.ssn = 'Social Security number must be exactly 9 digits';
-      }
-    }
-
-    if (!dependent.gender?.trim()) newErrors.gender = 'Gender is required';
-
-    setLocalErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+      return next;
+    });
   };
+
+  const handleSsnBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (selectedDependentIndex === null) return;
+    const index = selectedDependentIndex;
+    const mainSsn = subscriberAddress?.ssn ?? '';
+    const ssnValue = e.currentTarget.value;
+    const dependentsForCheck = dependents.map((d, i) =>
+      i === index ? { ...d, ssn: ssnValue } : d
+    );
+    const duplicateMsg = getDependentSsnDuplicateError(
+      ssnValue,
+      index,
+      dependentsForCheck,
+      mainSsn
+    );
+    setLocalErrors((prev) => {
+      const key = `dependent_${index}_ssn`;
+      const next = { ...prev };
+      if (duplicateMsg) {
+        next[key] = duplicateMsg;
+      } else {
+        delete next[key];
+      }
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    if (selectedDependentIndex === null || !subscriberAddress) return;
+    const index = selectedDependentIndex;
+    const dep = dependents[index];
+    if (!dep) return;
+
+    const mainPhone = subscriberAddress.phone ?? '';
+    const mainSsn = subscriberAddress.ssn ?? '';
+    const mainEmail = subscriberAddress.email ?? '';
+
+    const phoneDup = getDependentPhoneDuplicateError(dep.phone || '', index, dependents, mainPhone);
+    const ssnDup = getDependentSsnDuplicateError(dep.ssn || '', index, dependents, mainSsn);
+    const emailDup = getDependentEmailDuplicateError(dep.email || '', index, dependents, mainEmail);
+
+    setLocalErrors((prev) => {
+      const next = { ...prev };
+      const pk = `dependent_${index}_phone`;
+      const sk = `dependent_${index}_ssn`;
+      const ek = `dependent_${index}_email`;
+      if (phoneDup) next[pk] = phoneDup;
+      else delete next[pk];
+      if (ssnDup) next[sk] = ssnDup;
+      else delete next[sk];
+      if (emailDup) next[ek] = emailDup;
+      else delete next[ek];
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refresh when subscriber contact changes, not every dependent keystroke
+  }, [
+    subscriberAddress?.phone,
+    subscriberAddress?.ssn,
+    subscriberAddress?.email,
+    selectedDependentIndex,
+  ]);
 
   const handleDependentSelect = (index: number) => {
     setSelectedDependentIndex(index);
@@ -435,6 +500,7 @@ export default function DependentsAddressSection({
                       type="tel"
                       value={selectedDependent.phone || ''}
                       onChange={(e) => handleFieldChange('phone', e.target.value)}
+                      onBlur={handlePhoneBlur}
                       className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
                         errors[`dependent_${selectedDependentIndex}_phone`] ? 'border-red-500' : 'border-gray-300'
                       }`}
@@ -459,6 +525,7 @@ export default function DependentsAddressSection({
                         type="text"
                         value={selectedDependent.ssn || ''}
                         onChange={(e) => handleFieldChange('ssn', e.target.value)}
+                        onBlur={handleSsnBlur}
                         autoComplete="new-password"
                         className={`w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
                           errors[`dependent_${selectedDependentIndex}_ssn`] ? 'border-red-500' : 'border-gray-300'
