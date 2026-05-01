@@ -223,6 +223,25 @@ function normalizeDobFormat(dob: string): string {
   return trimmed;
 }
 
+/** Mirrors `calculateAgeFromDOB` in src/utils/pricingLogic.ts (MM/DD/YYYY). */
+function calculateAgeFromDobMmDdYyyy(dob: string): number | null {
+  const trimmed = (dob ?? "").trim();
+  const mmddyyyy = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!mmddyyyy) return null;
+  const month = parseInt(mmddyyyy[1], 10);
+  const day = parseInt(mmddyyyy[2], 10);
+  const year = parseInt(mmddyyyy[3], 10);
+  if (!month || !day || !year) return null;
+  const birthDate = new Date(year, month - 1, day);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+}
+
 function decryptPassword(encryptedPassword: string): string {
   try {
     const secretKey = Deno.env.get("VITE_ENCRYPTION_SECRET_KEY");
@@ -506,6 +525,35 @@ Deno.serve(async (req: Request) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
+    }
+
+    if (requestData.dependents?.length) {
+      for (let i = 0; i < requestData.dependents.length; i++) {
+        const dep = requestData.dependents[i];
+        const dobNorm = normalizeDobFormat((dep.dob as string) || "");
+        const age = calculateAgeFromDobMmDdYyyy(dobNorm);
+        if (age === null) continue;
+        if (dep.relationship === "Spouse" && age < 18) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              status: 400,
+              error: "Must be 18 years or older to enroll",
+            }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+        if (dep.relationship === "Child" && age >= 26) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              status: 400,
+              error: "Child dependents must be under 26 years of age",
+            }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+      }
     }
 
     if (!requestData.selectedPrice || requestData.selectedPrice <= 0) {

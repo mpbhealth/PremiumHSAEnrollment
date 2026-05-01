@@ -151,10 +151,16 @@ export default function EnrollmentWizard({ benefitId, onBenefitIdChange, agentId
         newErrors[`${prefix}dob`] = 'Date of birth is required';
       } else if (!validateDateInput(dependent.dob)) {
         newErrors[`${prefix}dob`] = 'Invalid date. Please enter a valid date in MM/DD/YYYY format';
-      } else if (dependent.relationship === 'Spouse') {
+      } else {
         const age = calculateAgeFromDOB(dependent.dob);
-        if (age !== null && age < 18) {
-          newErrors[`${prefix}dob`] = 'Must be 18 years or older to enroll';
+        if (dependent.relationship === 'Spouse') {
+          if (age !== null && age < 18) {
+            newErrors[`${prefix}dob`] = 'Must be 18 years or older to enroll';
+          }
+        } else if (dependent.relationship === 'Child') {
+          if (age !== null && age >= 26) {
+            newErrors[`${prefix}dob`] = 'Child dependents must be under 26 years of age';
+          }
         }
       }
       if (!dependent.smoker.trim()) newErrors[`${prefix}smoker`] = 'Smoker status is required';
