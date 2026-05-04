@@ -12,6 +12,10 @@ import {
   getPrimarySubscriberPhoneDuplicateError,
   getPrimarySubscriberSsnDuplicateError,
 } from '../utils/dependentPhoneSsnDuplicateValidation';
+import {
+  isPremiumHsaUnavailableState,
+  PREMIUM_HSA_UNAVAILABLE_STATE_MESSAGE,
+} from '../utils/premiumHsaUnavailableStates';
 
 interface ApiResponse {
   success: boolean;
@@ -51,16 +55,17 @@ export default function Step2AddressInfo({
   const [showReview, setShowReview] = useState(true);
   const [showSSN, setShowSSN] = useState(false);
   const effectiveDateOptions = calculateEffectiveDates();
-  const waBannerRef = useRef<HTMLDivElement>(null);
+  const unavailableStateBannerRef = useRef<HTMLDivElement>(null);
+  const primaryStateUnavailable = isPremiumHsaUnavailableState(formData.state);
 
   useEffect(() => {
-    if (formData.state === 'WA' && waBannerRef.current) {
-      waBannerRef.current.scrollIntoView({
+    if (primaryStateUnavailable && unavailableStateBannerRef.current) {
+      unavailableStateBannerRef.current.scrollIntoView({
         behavior: 'smooth',
         block: 'center'
       });
     }
-  }, [formData.state]);
+  }, [formData.state, primaryStateUnavailable]);
 
   const formatEffectiveDate = (dateString: string): string => {
     if (!dateString) return '-';
@@ -136,12 +141,12 @@ export default function Step2AddressInfo({
 
   return (
     <div className="space-y-8">
-      {formData.state === 'WA' && (
-        <div ref={waBannerRef} className="bg-amber-50 border-2 border-amber-500 rounded-lg p-4">
+      {primaryStateUnavailable && (
+        <div ref={unavailableStateBannerRef} className="bg-amber-50 border-2 border-amber-500 rounded-lg p-4">
           <div className="flex items-center gap-3">
             <AlertTriangle className="w-6 h-6 text-amber-600 flex-shrink-0" />
             <p className="text-base font-semibold text-amber-900">
-              This plan is not available in your state
+              {PREMIUM_HSA_UNAVAILABLE_STATE_MESSAGE}
             </p>
           </div>
         </div>
@@ -198,7 +203,7 @@ export default function Step2AddressInfo({
                 value={formData.state}
                 onChange={onChange}
                 className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition appearance-none bg-white ${
-                  errors.state ? 'border-red-500' : 'border-gray-300'
+                  errors.state || primaryStateUnavailable ? 'border-red-500' : 'border-gray-300'
                 }`}
               >
                 <option value="">Select...</option>
@@ -254,7 +259,11 @@ export default function Step2AddressInfo({
                 <option value="WY">WY</option>
                 <option value="DC">DC</option>
               </select>
-              {errors.state && <p className="mt-1 text-sm text-red-500">{errors.state}</p>}
+              {(primaryStateUnavailable || errors.state) && (
+                <p className="mt-1 text-sm text-red-500">
+                  {primaryStateUnavailable ? PREMIUM_HSA_UNAVAILABLE_STATE_MESSAGE : errors.state}
+                </p>
+              )}
             </div>
 
             <div>
@@ -558,7 +567,7 @@ export default function Step2AddressInfo({
             <button
               type="button"
               onClick={onSubmit}
-              disabled={loading || formData.state === 'WA'}
+              disabled={loading || primaryStateUnavailable}
               className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
@@ -566,7 +575,7 @@ export default function Step2AddressInfo({
                   <Loader2 className="w-5 h-5 animate-spin" />
                   Processing...
                 </>
-              ) : formData.state === 'WA' ? (
+              ) : primaryStateUnavailable ? (
                 'Not Available in Your State'
               ) : (
                 'Submit Enrollment'

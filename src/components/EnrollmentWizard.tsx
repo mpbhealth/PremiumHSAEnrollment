@@ -10,6 +10,10 @@ import {
   getPrimarySubscriberPhoneDuplicateError,
   getPrimarySubscriberSsnDuplicateError,
 } from '../utils/dependentPhoneSsnDuplicateValidation';
+import {
+  isPremiumHsaUnavailableState,
+  PREMIUM_HSA_UNAVAILABLE_STATE_MESSAGE,
+} from '../utils/premiumHsaUnavailableStates';
 import ProgressIndicator from './ProgressIndicator';
 import Step1PersonalInfo from './Step1PersonalInfo';
 import Step2Questionnaire from './Step2Questionnaire';
@@ -187,7 +191,11 @@ export default function EnrollmentWizard({ benefitId, onBenefitIdChange, agentId
 
     if (!formData.address1.trim()) newErrors.address1 = 'Address is required';
     if (!formData.city.trim()) newErrors.city = 'City is required';
-    if (!formData.state.trim()) newErrors.state = 'State is required';
+    if (!formData.state.trim()) {
+      newErrors.state = 'State is required';
+    } else if (isPremiumHsaUnavailableState(formData.state)) {
+      newErrors.state = PREMIUM_HSA_UNAVAILABLE_STATE_MESSAGE;
+    }
     if (!formData.zipcode.trim()) {
       newErrors.zipcode = 'Zipcode is required';
     } else if (formData.zipcode.length !== 5 || !/^\d{5}$/.test(formData.zipcode)) {
