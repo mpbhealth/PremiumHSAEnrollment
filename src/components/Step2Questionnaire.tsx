@@ -731,12 +731,9 @@ export default function Step2Questionnaire({
 
         <div className="space-y-6">
           <div>
-            <p className="font-semibold text-gray-900 mb-3">
-              Draw Your Signature
-              <span className="text-red-500 ml-1">*</span>
-            </p>
+            <p className="font-semibold text-gray-900 mb-3">Draw Your Signature</p>
             <p className="text-sm text-gray-600 mb-4">
-              Use your mouse or finger to sign in the box below, or type your full name below. At least one is required.
+              Optional: sign in the box below if you choose. You must type your full legal name to continue.
             </p>
 
             <div className="border-2 border-gray-300 rounded-lg overflow-hidden bg-white">
@@ -765,7 +762,6 @@ export default function Step2Questionnaire({
               Clear Signature
             </button>
 
-            {errors.signatureData && <p className="mt-2 text-sm text-red-500">{errors.signatureData}</p>}
           </div>
 
           <div className="border-t border-gray-200 pt-6">
@@ -774,7 +770,7 @@ export default function Step2Questionnaire({
               <span className="text-red-500 ml-1">*</span>
             </p>
             <p className="text-sm text-gray-600 mb-4">
-              You may type your full legal name instead of drawing, or provide both.
+              Type your full legal name exactly as it should appear on your membership documents.
             </p>
 
             <input
@@ -794,7 +790,7 @@ export default function Step2Questionnaire({
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-800">
-              <strong>Note:</strong> Provide a drawn signature and/or typed full name. At least one is required to continue.
+              <strong>Note:</strong> Typed full legal name is required to continue. A drawn signature is optional.
             </p>
           </div>
         </div>
