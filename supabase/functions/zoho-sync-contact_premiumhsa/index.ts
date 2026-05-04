@@ -86,6 +86,9 @@ interface ZohoUpsertResponse {
   }>;
 }
 
+/** Fixed Zoho CRM Contact `Product_Type` for this enrollment line (PDID 44036); not tied to IUA benefit id. */
+const ZOHO_CONTACT_PRODUCT_TYPE = "Premium HSA (44036)";
+
 const COVERAGE_MAP: Record<string, string> = {
   "3277": "Member Only",
   "3278": "Member Only",
@@ -331,7 +334,7 @@ function buildZohoContactPayload(
     Contact_Status: "New Enrollment",
     Carrier: "HSA",
     Company_Association: "MPB Health",
-    Product_Type: `Premium HSA (${payload.benefitId})`,
+    Product_Type: ZOHO_CONTACT_PRODUCT_TYPE,
     Coverage_Option: COVERAGE_MAP[payload.benefitId] || "Unknown",
   };
 
