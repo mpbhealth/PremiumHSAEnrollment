@@ -1,8 +1,8 @@
-import { MapPin, ArrowLeft, Loader2, XCircle, ChevronDown, ChevronUp, FileText, Receipt, AlertTriangle, Eye, EyeOff } from 'lucide-react';
+import { MapPin, ArrowLeft, Loader2, XCircle, ChevronDown, ChevronUp, FileText, Receipt, Eye, EyeOff } from 'lucide-react';
 import { FormData, Dependent, PaymentInfo } from '../hooks/useEnrollmentStorage';
 import { calculateEffectiveDates } from '../utils/dateCalculations';
 import { formatPhoneNumber, formatSSN } from '../utils/formatters';
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import DependentsAddressSection from './DependentsAddressSection';
 import PreExistingConditionsSection from './PreExistingConditionsSection';
 import PaymentInformationSection from './PaymentInformationSection';
@@ -55,17 +55,7 @@ export default function Step2AddressInfo({
   const [showReview, setShowReview] = useState(true);
   const [showSSN, setShowSSN] = useState(false);
   const effectiveDateOptions = calculateEffectiveDates();
-  const unavailableStateBannerRef = useRef<HTMLDivElement>(null);
   const primaryStateUnavailable = isPremiumHsaUnavailableState(formData.state);
-
-  useEffect(() => {
-    if (primaryStateUnavailable && unavailableStateBannerRef.current) {
-      unavailableStateBannerRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      });
-    }
-  }, [formData.state, primaryStateUnavailable]);
 
   const formatEffectiveDate = (dateString: string): string => {
     if (!dateString) return '-';
@@ -141,17 +131,6 @@ export default function Step2AddressInfo({
 
   return (
     <div className="space-y-8">
-      {primaryStateUnavailable && (
-        <div ref={unavailableStateBannerRef} className="bg-amber-50 border-2 border-amber-500 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <AlertTriangle className="w-6 h-6 text-amber-600 flex-shrink-0" />
-            <p className="text-base font-semibold text-amber-900">
-              {PREMIUM_HSA_UNAVAILABLE_STATE_MESSAGE}
-            </p>
-          </div>
-        </div>
-      )}
-
       <div className="space-y-6">
         <div className="flex items-center gap-2 mb-4">
           <MapPin className="w-5 h-5 text-blue-600" />
