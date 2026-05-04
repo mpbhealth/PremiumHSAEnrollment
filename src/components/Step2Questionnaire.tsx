@@ -212,7 +212,10 @@ export default function Step2Questionnaire({
 
         <div className="space-y-8">
           <div className="space-y-4">
-            <p className="font-semibold text-gray-900">Understanding Premium Care Principles of Membership</p>
+            <p className="font-semibold text-gray-900">
+              Understanding Premium Care Principles of Membership
+              <span className="text-red-500 ml-1">*</span>
+            </p>
             <p className="text-sm text-gray-700 leading-relaxed">
               I/we commit to living according to the Sedera (Sharing Organization) Membership Principles, including:
             </p>
@@ -260,7 +263,10 @@ export default function Step2Questionnaire({
               I, as the Primary Member, approve this membership commitment for myself and all household members listed on this
               application.
             </p>
-            <p className="text-sm font-semibold text-gray-900">I understand that:</p>
+            <p className="text-sm font-semibold text-gray-900">
+              I understand that:
+              <span className="text-red-500 ml-1">*</span>
+            </p>
             <ul className="list-disc list-inside space-y-2 text-sm text-gray-700">
               <li>This membership is not insurance; it is a voluntary medical needs sharing program.</li>
               <li>There are no guarantees that medical expenses will be shared.</li>
