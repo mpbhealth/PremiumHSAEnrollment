@@ -731,8 +731,8 @@ export default function EnrollmentWizard({ benefitId, onBenefitIdChange, agentId
         payment: formData.payment,
         pdid: formData.pdid,
         promoCode: formData.appliedPromo
-          ? (formData.promoCode.trim() || formData.appliedPromo.code)
-          : '',
+          ? String(formData.appliedPromo.code || formData.promoCode || '').trim()
+          : String(formData.promoCode || '').trim(),
         appliedPromo: formData.appliedPromo,
         referral: (formData.questionnaireAnswers.referral ?? '').trim(),
       };

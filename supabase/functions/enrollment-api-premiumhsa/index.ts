@@ -308,8 +308,22 @@ interface EnrollmentRequest {
   payment: PaymentInfo;
   pdid?: number;
   promoCode?: string;
+  /** Restored from encrypted payload after merge; used when plain `promoCode` is empty. */
+  appliedPromo?: unknown;
   zohoContactId?: string;
   referral?: string;
+}
+
+/** Plain `promoCode` may be missing on encrypted envelopes; `appliedPromo` is merged from `_encrypted`. */
+function resolvedPromoCodeForLookup(requestData: EnrollmentRequest): string {
+  const fromField = typeof requestData.promoCode === "string" ? requestData.promoCode.trim() : "";
+  if (fromField !== "") return fromField;
+  const ap = requestData.appliedPromo;
+  if (ap && typeof ap === "object") {
+    const code = (ap as { code?: unknown }).code;
+    if (typeof code === "string" && code.trim() !== "") return code.trim();
+  }
+  return "";
 }
 
 /** Combines optional referral text with Zoho contact id for SOURCEDETAIL. */
@@ -693,9 +707,11 @@ Deno.serve(async (req: Request) => {
 
     let enrollmentFeeAmount = "100.00";
 
-    if (requestData.promoCode && requestData.promoCode.trim() !== '') {
-      const normalizedPromo = normalizePromoCodeInput(requestData.promoCode);
-      if (normalizedPromo !== '') {
+    const promoCodeForLookup = resolvedPromoCodeForLookup(requestData);
+
+    if (promoCodeForLookup !== "") {
+      const normalizedPromo = normalizePromoCodeInput(promoCodeForLookup);
+      if (normalizedPromo !== "") {
         const pattern = escapePromoCodeForILike(normalizedPromo);
         const effPdid = effectivePdidFromRequest(requestData.pdid);
 
