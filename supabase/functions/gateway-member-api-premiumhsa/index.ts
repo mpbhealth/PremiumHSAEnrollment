@@ -28,17 +28,12 @@ function decryptPassword(encryptedPassword: string): string {
 interface GatewayRequest {
   memberId: string;
   pdfUrl: string;
+  /**
+   * Accepted for backward compatibility with the client; the PDF and its
+   * `enrollment_pdfs` row are intentionally retained after a successful
+   * gateway send (no deletion is performed here).
+   */
   customerEmail?: string;
-}
-
-function extractStoragePathFromUrl(pdfUrl: string): string | null {
-  try {
-    const url = new URL(pdfUrl);
-    const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/enrollment-documents\/(.+)/);
-    return pathMatch ? pathMatch[1] : null;
-  } catch {
-    return null;
-  }
 }
 
 Deno.serve(async (req: Request) => {
@@ -195,25 +190,6 @@ Deno.serve(async (req: Request) => {
       responseData = JSON.parse(responseText);
     } catch {
       responseData = responseText;
-    }
-
-    if (response.ok) {
-      const storagePath = extractStoragePathFromUrl(requestData.pdfUrl);
-
-      if (storagePath) {
-        const { error: deleteError } = await supabase.storage
-          .from('enrollment-documents')
-          .remove([storagePath]);
-
-        if (requestData.customerEmail && !deleteError) {
-          await supabase
-            .from('enrollment_pdfs')
-            .update({
-              metadata: { deleted: true, deleted_at: new Date().toISOString() }
-            })
-            .eq('customer_email', requestData.customerEmail);
-        }
-      }
     }
 
     return new Response(
