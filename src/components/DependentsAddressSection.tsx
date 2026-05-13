@@ -6,6 +6,7 @@ import {
   getDependentPhoneDuplicateError,
   getDependentSsnDuplicateError,
 } from '../utils/dependentPhoneSsnDuplicateValidation';
+import { isChildDependentUnder18ForContactOptional } from '../utils/dependentAgeValidation';
 import { useState, useEffect } from 'react';
 
 interface DependentsAddressSectionProps {
@@ -289,7 +290,12 @@ export default function DependentsAddressSection({
         </div>
 
         <div className="lg:col-span-2">
-          {selectedDependent && (
+          {selectedDependent && (() => {
+            const contactOptional = isChildDependentUnder18ForContactOptional(
+              selectedDependent.dob,
+              selectedDependent.relationship
+            );
+            return (
             <div className="bg-white border-2 border-gray-200 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
                 Address Information for {selectedDependent.firstName} {selectedDependent.lastName}
@@ -470,7 +476,7 @@ export default function DependentsAddressSection({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address <span className="text-red-500">*</span>
+                    Email Address {!contactOptional && <span className="text-red-500">*</span>}
                   </label>
                   <input
                     type="email"
@@ -480,8 +486,8 @@ export default function DependentsAddressSection({
                     className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
                       errors[`dependent_${selectedDependentIndex}_email`] ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    placeholder=""
-                    aria-required="true"
+                    placeholder={contactOptional ? 'Optional' : ''}
+                    aria-required={!contactOptional}
                     aria-invalid={!!errors[`dependent_${selectedDependentIndex}_email`]}
                   />
                   {errors[`dependent_${selectedDependentIndex}_email`] && (
@@ -494,7 +500,7 @@ export default function DependentsAddressSection({
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Phone Number <span className="text-red-500">*</span>
+                      Phone Number {!contactOptional && <span className="text-red-500">*</span>}
                     </label>
                     <input
                       type="tel"
@@ -504,9 +510,9 @@ export default function DependentsAddressSection({
                       className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
                         errors[`dependent_${selectedDependentIndex}_phone`] ? 'border-red-500' : 'border-gray-300'
                       }`}
-                      placeholder="555-123-4567"
+                      placeholder={contactOptional ? 'Optional' : '555-123-4567'}
                       maxLength={12}
-                      aria-required="true"
+                      aria-required={!contactOptional}
                       aria-invalid={!!errors[`dependent_${selectedDependentIndex}_phone`]}
                     />
                     {errors[`dependent_${selectedDependentIndex}_phone`] && (
@@ -518,7 +524,7 @@ export default function DependentsAddressSection({
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Social Security <span className="text-red-500">*</span>
+                      Social Security {!contactOptional && <span className="text-red-500">*</span>}
                     </label>
                     <div className="relative">
                       <input
@@ -530,9 +536,9 @@ export default function DependentsAddressSection({
                         className={`w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
                           errors[`dependent_${selectedDependentIndex}_ssn`] ? 'border-red-500' : 'border-gray-300'
                         }`}
-                        placeholder="XXX-XX-XXXX"
+                        placeholder={contactOptional ? 'Optional' : 'XXX-XX-XXXX'}
                         maxLength={11}
-                        aria-required="true"
+                        aria-required={!contactOptional}
                         aria-invalid={!!errors[`dependent_${selectedDependentIndex}_ssn`]}
                         style={{ WebkitTextSecurity: showDepSSN ? 'none' : 'disc' } as React.CSSProperties}
                       />
@@ -578,7 +584,8 @@ export default function DependentsAddressSection({
                 </div>
               </div>
             </div>
-          )}
+          );
+          })()}
         </div>
       </div>
     </div>

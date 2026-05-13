@@ -14,6 +14,7 @@ import {
   isPremiumHsaUnavailableState,
   PREMIUM_HSA_UNAVAILABLE_STATE_MESSAGE,
 } from '../utils/premiumHsaUnavailableStates';
+import { isChildDependentUnder18ForContactOptional } from '../utils/dependentAgeValidation';
 import ProgressIndicator from './ProgressIndicator';
 import Step1PersonalInfo from './Step1PersonalInfo';
 import Step2Questionnaire from './Step2Questionnaire';
@@ -294,10 +295,18 @@ export default function EnrollmentWizard({ benefitId, onBenefitIdChange, agentId
         }
       }
 
-      if (!dependent.email?.trim()) {
-        newErrors[`${prefix}email`] = 'Email address is required';
-        hasError = true;
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dependent.email)) {
+      const skipContactRequired = isChildDependentUnder18ForContactOptional(
+        dependent.dob,
+        dependent.relationship
+      );
+
+      const emailTrimmed = dependent.email?.trim() || '';
+      if (!emailTrimmed) {
+        if (!skipContactRequired) {
+          newErrors[`${prefix}email`] = 'Email address is required';
+          hasError = true;
+        }
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) {
         newErrors[`${prefix}email`] = 'Email address must be valid';
         hasError = true;
       } else {
@@ -312,11 +321,15 @@ export default function EnrollmentWizard({ benefitId, onBenefitIdChange, agentId
           hasError = true;
         }
       }
-      if (!dependent.phone?.trim()) {
-        newErrors[`${prefix}phone`] = 'Phone number is required';
-        hasError = true;
+
+      const phoneTrimmed = dependent.phone?.trim() || '';
+      if (!phoneTrimmed) {
+        if (!skipContactRequired) {
+          newErrors[`${prefix}phone`] = 'Phone number is required';
+          hasError = true;
+        }
       } else {
-        const phoneDigits = dependent.phone.replace(/\D/g, '');
+        const phoneDigits = phoneTrimmed.replace(/\D/g, '');
         if (phoneDigits.length !== 10) {
           newErrors[`${prefix}phone`] = 'Phone must be exactly 10 digits';
           hasError = true;
@@ -333,11 +346,15 @@ export default function EnrollmentWizard({ benefitId, onBenefitIdChange, agentId
           }
         }
       }
-      if (!dependent.ssn?.trim()) {
-        newErrors[`${prefix}ssn`] = 'Social Security is required';
-        hasError = true;
+
+      const ssnTrimmed = dependent.ssn?.trim() || '';
+      if (!ssnTrimmed) {
+        if (!skipContactRequired) {
+          newErrors[`${prefix}ssn`] = 'Social Security is required';
+          hasError = true;
+        }
       } else {
-        const ssnDigits = dependent.ssn.replace(/\D/g, '');
+        const ssnDigits = ssnTrimmed.replace(/\D/g, '');
         if (ssnDigits.length !== 9) {
           newErrors[`${prefix}ssn`] = 'Social Security must be exactly 9 digits';
           hasError = true;
