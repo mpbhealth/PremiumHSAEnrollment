@@ -368,10 +368,6 @@ export async function generateEnrollmentPDF(formData: FormData): Promise<Blob> {
     ['Membership Principles — Dispute Resolution & Responsibility', formatAnswer(q.zionm1b)],
     ['Membership Principles — Acknowledgements & State Notices', formatAnswer(q.zionm1d)],
     [
-      'Health History — Accurate disclosure for household; undisclosed conditions treated as disclosed at membership start. Pre-existing sharing limitations are stated under Limitations on Pre-Existing Conditions below.',
-      formatAnswer(q.zionmh2P),
-    ],
-    [
       'Health History — Maternity and Delivery (waiting periods/sharing limits; includes waiting periods, pregnancy pre-existing, multiple/complicated deliveries; comply with Guidelines)',
       formatAnswer(q.maternityDeliveryAck),
     ],
